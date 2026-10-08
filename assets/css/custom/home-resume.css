@@ -1,0 +1,66 @@
+@view-transition {
+  navigation: auto;
+}
+
+.author-profile-card {
+  view-transition-name: author-profile-card;
+}
+
+.author-profile-card.is-clickable {
+  cursor: pointer;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.author-profile-card.is-clickable:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 24%, var(--color-border));
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--color-foreground) 12%, transparent);
+  transform: translateY(-2px);
+}
+
+.author-profile-card.is-clickable:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
+  outline: none;
+}
+
+.resume-profile-head .author-profile-card {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.resume-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-0.75rem);
+  transition:
+    grid-template-rows 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 360ms ease 100ms,
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.resume-reveal.is-visible {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.resume-reveal-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+::view-transition-old(author-profile-card),
+::view-transition-new(author-profile-card) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .author-profile-card.is-clickable,
+  .resume-reveal {
+    transition: none;
+  }
+}

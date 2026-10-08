@@ -1,0 +1,38 @@
+{{- $src := .src -}}
+{{- $title := .title | default $src -}}
+{{- $ratio := .ratio | default "16:9" -}}
+{{- $normalized := replace $ratio "/" ":" -}}
+{{- $parts := split $normalized ":" -}}
+{{- $w := float (index $parts 0) -}}
+{{- $h := float (index $parts 1) -}}
+{{- $padding := mul (div $h $w) 100 -}}
+
+<div class="inframe-card">
+  <div class="inframe-card__bar">
+    <div class="inframe-card__bar-left">
+      <span class="inframe-card__dot"></span>
+      <span class="inframe-card__dot"></span>
+      <span class="inframe-card__dot"></span>
+      <span class="inframe-card__title">{{ $title }}</span>
+    </div>
+    <div class="inframe-card__actions">
+      <button class="inframe-btn inframe-btn--copy" type="button" aria-label="复制网址" title="复制 URL" data-url="{{ $src }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+      <a class="inframe-btn inframe-btn--accent" href="{{ $src }}" target="_blank" rel="noopener noreferrer" aria-label="打开页面" title="打开">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 4h6v6"></path>
+          <path d="M10 14L20 4"></path>
+          <path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"></path>
+        </svg>
+      </a>
+      <span class="inframe-copy-status">已复制</span>
+    </div>
+  </div>
+  <div class="inframe-shell" style="padding-bottom: {{ $padding }}%;">
+    <iframe class="inframe-iframe" src="{{ $src }}" title="{{ $title }}" loading="lazy" allowfullscreen></iframe>
+  </div>
+</div>

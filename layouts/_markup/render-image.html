@@ -1,0 +1,95 @@
+{{- $pageContext := .PageInner | default .Page -}}
+{{- $dest := .Destination | safeURL -}}
+{{- $alt := .Text -}}
+{{- $caption := .Title -}}
+{{- $globalLightbox := site.Params.lightbox | default dict -}}
+{{- $pageLightbox := .Page.Params.lightbox | default dict -}}
+{{- $lightboxEnabled := false -}}
+{{- $pageContext.Store.Set "hasImageFigure" true -}}
+{{- .Page.Store.Set "hasImageFigure" true -}}
+
+{{- if isset $pageLightbox "enabled" -}}
+  {{- $lightboxEnabled = $pageLightbox.enabled -}}
+{{- else if isset $globalLightbox "enabled" -}}
+  {{- $lightboxEnabled = $globalLightbox.enabled -}}
+{{- end -}}
+
+{{- if $lightboxEnabled -}}
+  {{- $pageContext.Store.Set "hasLightboxFigure" true -}}
+  {{- .Page.Store.Set "hasLightboxFigure" true -}}
+{{- end -}}
+
+{{- partial "content/image-processor.html" (dict
+  "context" $pageContext
+  "src" $dest
+  "alt" $alt
+  "caption" $caption
+  "enablePlaceholder" false
+  "outputType" "data"
+  )
+-}}
+
+{{- $imageUrl := $pageContext.Scratch.Get "imageUrl" -}}
+{{- $imageResource := $pageContext.Scratch.Get "imageResource" -}}
+{{- $isExternal := $pageContext.Scratch.Get "isExternal" -}}
+{{- $width := 0 -}}
+{{- $height := 0 -}}
+
+{{- if and $imageResource (not $isExternal) -}}
+  {{- $mediaType := $imageResource.MediaType.SubType -}}
+  {{- if in (slice "jpeg" "jpg" "png" "gif" "webp") $mediaType -}}
+    {{- $width = $imageResource.Width -}}
+    {{- $height = $imageResource.Height -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $zoomLabel := partial "config/ui-text.html" (dict "key" "image.zoom" "fallback" "Zoom") -}}
+{{- $downloadLabel := partial "config/ui-text.html" (dict "key" "image.download" "fallback" "Download") -}}
+
+<figure
+  class="image-figure not-prose my-8"
+  data-lightbox-enabled="{{ $lightboxEnabled }}"
+  data-gallery-type="auto"
+  data-image-width="{{ $width }}"
+  data-image-height="{{ $height }}"
+  data-image-src="{{ $imageUrl }}"
+>
+  <div class="image-container prose-image-container" data-prose-image>
+    <div class="prose-image-actions" aria-label="{{ $alt | default "Image tools" }}">
+      <button
+        class="prose-image-action"
+        type="button"
+        data-image-action="zoom"
+        aria-label="{{ $zoomLabel }}"
+        title="{{ $zoomLabel }}"
+      >
+        {{ partial "features/icon.html" (dict "name" "maximize" "size" "sm" "ariaLabel" "") }}
+      </button>
+      <button
+        class="prose-image-action"
+        type="button"
+        data-image-action="download"
+        aria-label="{{ $downloadLabel }}"
+        title="{{ $downloadLabel }}"
+      >
+        {{ partial "features/icon.html" (dict "name" "download" "size" "sm" "ariaLabel" "") }}
+      </button>
+    </div>
+
+    {{- partial "content/image-processor.html" (dict
+      "context" $pageContext
+      "src" $dest
+      "alt" $alt
+      "caption" $caption
+      "enablePlaceholder" false
+      "outputType" "img"
+      )
+    -}}
+  </div>
+
+  {{- if $caption -}}
+    <figcaption class="image-caption">
+      {{ $caption | .Page.RenderString }}
+    </figcaption>
+  {{- end -}}
+</figure>

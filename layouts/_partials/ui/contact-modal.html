@@ -1,1 +1,559 @@
-{{/* Add this component after public contact details are configured. */}}
+{{- $contacts := hugo.Data.contact.config.contacts | default slice -}}
+{{- if not $contacts }}{{ return }}{{- end -}}
+
+{{- $avatarSrc := site.Params.author.avatar | default "" -}}
+{{- $avatarURL := "" -}}
+{{- if $avatarSrc -}}
+  {{- $avatarURL = $avatarSrc | relURL -}}
+{{- end -}}
+
+{{- $contactData := slice -}}
+{{- range $contacts -}}
+  {{- $iconSvg := "" -}}
+  {{- with .icon -}}
+    {{- $iconSvg = partial "features/icon.html" (dict "name" . "ariaLabel" "") -}}
+  {{- end -}}
+  {{- $contactData = $contactData | append (dict
+    "id" .id
+    "name" .name
+    "type" .type
+    "iconSvg" $iconSvg
+    "email" .email
+    "qrImage" .qrImage
+    "qrSeed" .qrSeed
+    "profileName" .profileName
+    "profileId" .profileId
+    "profileLink" .profileLink
+    "buttons" .buttons
+  ) -}}
+{{- end -}}
+
+<div class="contact-modal-root" id="contactModalRoot" aria-hidden="true">
+  <article class="contact-card" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
+    <div class="contact-card-head">
+      <div class="contact-card-brand">
+        <div class="contact-card-brand-icon" id="contactModalIcon"></div>
+        <span class="contact-card-brand-name" id="contactModalTitle"></span>
+      </div>
+      <button class="contact-card-close-btn" id="contactModalCloseBtn" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="contact-card-body" id="contactModalBody"></div>
+  </article>
+</div>
+
+<div class="contact-toast" id="contactToast"></div>
+
+<style>
+.contact-modal-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: color-mix(in oklab, var(--color-background) 78%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s ease, visibility .25s ease;
+  z-index: 9999;
+}
+.contact-modal-root.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.contact-card {
+  width: min(420px, 100%);
+  padding: 0;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-border) 60%, transparent),
+    0 24px 64px rgba(0,0,0,.12);
+  transform: translateY(12px) scale(.97);
+  transition: transform .28s cubic-bezier(.22,1,.36,1);
+  overflow: hidden;
+}
+.contact-modal-root.is-open .contact-card {
+  transform: translateY(0) scale(1);
+}
+
+.contact-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 14px;
+}
+
+.contact-card-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.contact-card-brand-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--color-primary);
+  background: color-mix(in oklab, var(--color-primary) 8%, transparent);
+  border-radius: 12px;
+  padding: 9px;
+}
+.contact-card-brand-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.contact-card-brand-name {
+  font-size: 22px;
+  font-weight: 680;
+  letter-spacing: -.03em;
+  white-space: nowrap;
+  color: var(--color-foreground);
+}
+
+.contact-card-close-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-muted);
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all .2s ease;
+}
+.contact-card-close-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.contact-card-close-btn:hover {
+  background: color-mix(in oklab, var(--color-foreground) 12%, transparent);
+  color: var(--color-foreground);
+  transform: rotate(90deg);
+}
+
+.contact-card-body {
+  padding: 6px 24px 28px;
+}
+
+/* ========== QR 卡片 ========== */
+.contact-qr-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.contact-qr-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 16px;
+  background: color-mix(in oklab, var(--color-muted) 50%, transparent);
+  border-radius: 14px;
+}
+
+.contact-avatar {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.contact-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.contact-profile-text {
+  min-width: 0;
+}
+.contact-profile-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  line-height: 1.2;
+  color: var(--color-foreground);
+}
+.contact-profile-sub {
+  margin: 4px 0 0;
+  color: var(--color-muted-foreground);
+  font-size: 14px;
+  line-height: 1.3;
+  word-break: break-all;
+}
+
+/* QR 下半部分 */
+.contact-qr-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.contact-qr-box {
+  aspect-ratio: 1;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-card);
+  box-shadow: 0 2px 12px rgba(0,0,0,.04);
+}
+.contact-qr-box img,
+.contact-qr-box svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ========== Email 卡片 ========== */
+.contact-email-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 28px 8px 4px;
+}
+
+.contact-email-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  display: grid;
+  place-items: center;
+}
+.contact-email-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.contact-email-addr {
+  margin: 0;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  word-break: break-all;
+  color: var(--color-foreground);
+  line-height: 1.4;
+}
+
+/* ========== Profile 卡片 ========== */
+.contact-plain-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 30px 8px 4px;
+}
+
+.contact-plain-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid color-mix(in oklab, var(--color-primary) 25%, transparent);
+  box-shadow: 0 4px 16px rgba(0,0,0,.08);
+}
+.contact-plain-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.contact-plain-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-foreground);
+  text-align: center;
+}
+
+.contact-plain-link {
+  margin: 4px 0 0;
+  color: var(--color-muted-foreground);
+  font-size: 15px;
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+/* ========== 按钮 ========== */
+.contact-button-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.contact-action-btn {
+  width: 100%;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all .2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* primary action — first button */
+.contact-button-stack .contact-action-btn:first-child {
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+}
+.contact-button-stack .contact-action-btn:first-child:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px color-mix(in oklab, var(--color-primary) 30%, transparent);
+}
+
+/* secondary action */
+.contact-action-btn:not(:first-child) {
+  background: color-mix(in oklab, var(--color-muted) 60%, transparent);
+  color: var(--color-foreground);
+}
+.contact-action-btn:not(:first-child):hover {
+  background: var(--color-muted);
+  transform: translateY(-1px);
+}
+
+.contact-action-btn svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+/* ========== Toast ========== */
+.contact-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%) translateY(16px);
+  padding: 12px 22px;
+  border-radius: 14px;
+  background: var(--color-foreground);
+  color: var(--color-background);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+  z-index: 10000;
+  box-shadow: 0 8px 30px rgba(0,0,0,.18);
+}
+.contact-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 500px) {
+  .contact-card {
+    border-radius: 16px;
+  }
+  .contact-card-head {
+    padding: 16px 18px 12px;
+  }
+  .contact-card-body {
+    padding: 4px 18px 22px;
+  }
+  .contact-card-brand-name {
+    font-size: 19px;
+  }
+  .contact-card-brand-icon {
+    width: 38px;
+    height: 38px;
+    padding: 7px;
+    border-radius: 10px;
+  }
+  .contact-qr-main {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .contact-qr-box {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+  .contact-qr-profile {
+    padding: 14px 12px;
+  }
+  .contact-email-layout,
+  .contact-plain-layout {
+    padding-top: 16px;
+  }
+}
+</style>
+
+{{- $jsonData := dict "avatarURL" $avatarURL "contacts" $contactData | jsonify -}}
+<script>
+  window.__contactData = {{ $jsonData | safeJS }};
+</script>
+
+<script>
+  (function () {
+    var cfg = window.__contactData;
+    if (!cfg) return;
+
+    var modalRoot  = document.getElementById('contactModalRoot');
+    var modalIcon  = document.getElementById('contactModalIcon');
+    var modalTitle = document.getElementById('contactModalTitle');
+    var modalBody  = document.getElementById('contactModalBody');
+    var closeBtn   = document.getElementById('contactModalCloseBtn');
+    var toastEl    = document.getElementById('contactToast');
+
+    var actionSvg = {
+      copy: '<svg viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="10" height="12" rx="2" stroke="currentColor" stroke-width="2"/><path d="M6 16V6a2 2 0 0 1 2-2h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+      send: '<svg viewBox="0 0 24 24" fill="none"><path d="M21 4 10 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 4l-7 17-4-6-6-4 17-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+      external: '<svg viewBox="0 0 24 24" fill="none"><path d="M14 5h5v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19 5l-9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 6H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+      chat: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 18l1.2-3.2A7.2 7.2 0 1 1 9.2 18H5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 11h.01M12 11h.01M15 11h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>'
+    };
+
+    var emailSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 4-10 8L2 4"/></svg>';
+
+    function qrSvg(seed) {
+      var c = '';
+      function h(s) { var v = 0; for (var i = 0; i < s.length; i++) v = s.charCodeAt(i) + ((v << 5) - v); return Math.abs(v); }
+      function f(x, y) {
+        c += '<rect x="' + x + '" y="' + y + '" width="7" height="7" fill="var(--color-foreground)"/>';
+        c += '<rect x="' + (x+1) + '" y="' + (y+1) + '" width="5" height="5" fill="var(--color-card)"/>';
+        c += '<rect x="' + (x+2) + '" y="' + (y+2) + '" width="3" height="3" fill="var(--color-foreground)"/>';
+      }
+      f(1,1); f(21,1); f(1,21);
+      for (var y = 0; y < 29; y++)
+        for (var x = 0; x < 29; x++) {
+          if ((x <= 8 && y <= 8) || (x >= 20 && y <= 8) || (x <= 8 && y >= 20)) continue;
+          if (h(seed + '-' + x + '-' + y) % 100 < 42) c += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="var(--color-foreground)"/>';
+        }
+      return '<svg viewBox="0 0 29 29" shape-rendering="crispEdges"><rect width="29" height="29" fill="var(--color-card)"/>' + c + '</svg>';
+    }
+
+    function buttonsHtml(btns) {
+      return '<div class="contact-button-stack">' + btns.map(function (btn) {
+        var icon = actionSvg[btn.icon] || '';
+        if (btn.copy) return '<button class="contact-action-btn" data-contact-copy="' + esc(btn.copy) + '">' + icon + '<span>' + esc(btn.text) + '</span></button>';
+        return '<a class="contact-action-btn" href="' + esc(btn.url) + '" target="_blank" rel="noopener noreferrer">' + icon + '<span>' + esc(btn.text) + '</span></a>';
+      }).join('') + '</div>';
+    }
+
+    function renderBody(item) {
+      var avatar = cfg.avatarURL ? '<img src="' + cfg.avatarURL + '" alt="" />' : '';
+
+      // --- QR type ---
+      if (item.type === 'qr') {
+        var qr = item.qrImage
+          ? '<img src="' + esc(item.qrImage) + '" alt="QR" />'
+          : qrSvg(item.qrSeed || item.id);
+        return '' +
+          '<div class="contact-qr-layout">' +
+            '<div class="contact-qr-profile">' +
+              '<div class="contact-avatar">' + avatar + '</div>' +
+              '<div class="contact-profile-text">' +
+                '<p class="contact-profile-name">' + esc(item.profileName) + '</p>' +
+                '<p class="contact-profile-sub">' + esc(item.profileId) + '</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="contact-qr-main">' +
+              '<div class="contact-qr-box">' + qr + '</div>' +
+              '<div>' + buttonsHtml(item.buttons) + '</div>' +
+            '</div>' +
+          '</div>';
+      }
+
+      // --- Email type ---
+      if (item.type === 'email') {
+        return '' +
+          '<div class="contact-email-layout">' +
+            '<div class="contact-email-icon">' + emailSvg + '</div>' +
+            '<p class="contact-email-addr">' + esc(item.email) + '</p>' +
+            buttonsHtml(item.buttons) +
+          '</div>';
+      }
+
+      // --- Profile type ---
+      return '' +
+        '<div class="contact-plain-layout">' +
+          '<div class="contact-plain-avatar">' + avatar + '</div>' +
+          '<div>' +
+            '<p class="contact-plain-name">' + esc(item.profileName) + '</p>' +
+            '<p class="contact-plain-link">' + esc(item.profileLink) + '</p>' +
+          '</div>' +
+          buttonsHtml(item.buttons) +
+        '</div>';
+    }
+
+    function openModal(id) {
+      var item = null;
+      for (var i = 0; i < cfg.contacts.length; i++) { if (cfg.contacts[i].id === id) { item = cfg.contacts[i]; break; } }
+      if (!item) return;
+
+      modalIcon.innerHTML = item.iconSvg;
+      modalTitle.textContent = item.name;
+      modalBody.innerHTML = renderBody(item);
+      modalRoot.classList.add('is-open');
+      modalRoot.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeModal() {
+      modalRoot.classList.remove('is-open');
+      modalRoot.setAttribute('aria-hidden', 'true');
+    }
+
+    function toast(text) {
+      toastEl.textContent = text;
+      toastEl.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { toastEl.classList.remove('show'); }, 1600);
+    }
+
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); toast('已复制'); }
+      catch (e) {
+        var t = document.createElement('textarea'); t.value = text;
+        document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+        toast('已复制');
+      }
+    }
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest('[data-contact-modal]');
+      if (trigger) { e.preventDefault(); openModal(trigger.dataset.contactModal); }
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    modalRoot.addEventListener('click', function (e) { if (e.target === modalRoot) closeModal(); });
+    modalBody.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-contact-copy]');
+      if (btn) copyText(btn.dataset.contactCopy);
+    });
+    window.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+  })();
+</script>

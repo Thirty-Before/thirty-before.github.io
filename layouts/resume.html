@@ -1,0 +1,21 @@
+{{ define "main" }}
+  <article class="resume-page py-2" data-resume-page>
+    <header class="resume-profile-head mb-0">
+      {{ partial "home/author-card.html" (dict
+        "context" .
+        "clickable" true
+        "resumeLink" site.Home.RelPermalink
+      ) }}
+    </header>
+
+    <div class="resume-reveal" data-resume-reveal>
+      <div class="resume-reveal-inner">
+        <section class="bg-card border-border rounded-b-xl border border-t-0 px-6 pt-8 pb-8 shadow-sm md:px-8">
+          <div class="prose prose-neutral dark:prose-invert max-w-none">
+            {{ .Content }}
+          </div>
+        </section>
+      </div>
+    </div>
+  </article>
+{{ end }}

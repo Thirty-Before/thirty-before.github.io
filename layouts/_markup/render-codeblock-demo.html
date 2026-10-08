@@ -1,0 +1,70 @@
+{{- /* Demo code block render hook — boundary → header → source → preview → result */ -}}
+{{- $title := .Attributes.title | default "" -}}
+{{- $renderType := .Attributes.render | default "md" -}}
+{{- $renderType = replace $renderType "markdown" "md" -}}
+{{- $hasRender := isset .Attributes "render" -}}
+{{- $apply := .Attributes.apply | default "true" -}}
+{{- $showResult := ne $apply "false" -}}
+{{- /* Extract inframe params from source as fallback */ -}}
+{{- $raw := replace (replace .Inner "/*" "") "*/" "" -}}
+{{- $attrSrc := .Attributes.src | default "" -}}
+{{- $attrRatio := .Attributes.ratio | default "" -}}
+{{- $reSrc := findRESubmatch `src="([^"]*)"` $raw -}}
+{{- $reTitle := findRESubmatch `title="([^"]*)"` $raw -}}
+{{- $reRatio := findRESubmatch `ratio="([^"]*)"` $raw -}}
+{{- $innerSrc := "" -}}{{- $innerTitle := "" -}}{{- $innerRatio := "" -}}
+{{- if $reSrc }}{{ $innerSrc = index (index $reSrc 0) 1 }}{{ end -}}
+{{- if $reTitle }}{{ $innerTitle = index (index $reTitle 0) 1 }}{{ end -}}
+{{- if $reRatio }}{{ $innerRatio = index (index $reRatio 0) 1 }}{{ end -}}
+{{- $inframeSrc := cond (ne $attrSrc "") $attrSrc $innerSrc -}}
+{{- $inframeTitle := $innerTitle -}}
+{{- $inframeRatio := cond (ne $attrRatio "") $attrRatio (cond (ne $innerRatio "") $innerRatio "16:9") -}}
+{{- $blockId := printf "demo-%d" .Ordinal -}}
+
+<div class="demo-flow" id="{{ $blockId }}">
+  <div class="demo-flow__top-boundary">
+    <span class="demo-flow__label">DEMO</span>
+  </div>
+
+  {{- if or $title $hasRender -}}
+  <div class="demo-flow__header">
+    {{- if $title -}}<span class="demo-flow__title">{{ $title }}</span>{{- end -}}
+    {{- if $hasRender -}}<span class="demo-flow__meta">{{ $renderType }}</span>{{- end -}}
+  </div>
+  {{- end -}}
+
+  <div class="demo-flow__source-wrap">
+    <button class="demo-flow__copy" type="button" aria-label="复制源码" title="复制源码">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    </button>
+    <pre class="demo-flow__source"><code>{{ replace (replace .Inner "/*" "") "*/" "" }}</code></pre>
+  </div>
+
+  {{- if $showResult -}}
+  <div class="demo-flow__preview-boundary">Render Previewer</div>
+
+  <div class="demo-flow__result">
+    {{- if eq $renderType "html" -}}
+      {{ .Inner | safeHTML }}
+    {{- else if eq $renderType "inframe" -}}
+      {{ partial "components/inframe.html" (dict
+        "src" $inframeSrc
+        "title" $inframeTitle
+        "ratio" $inframeRatio
+      ) }}
+    {{- else -}}
+      {{- $innerForRender := .Inner -}}
+      {{- if ne $inframeSrc "" -}}
+        {{- $inframeHTML := partial "components/inframe.html" (dict "src" $inframeSrc "title" $inframeTitle "ratio" $inframeRatio) -}}
+        {{- $innerForRender = replaceRE `\{\{</?\*[^}]+\*/>\}\}` $inframeHTML $innerForRender -}}
+      {{- end -}}
+      {{ $innerForRender | $.Page.RenderString }}
+    {{- end -}}
+  </div>
+  {{- end -}}
+
+  <div class="demo-flow__bottom-boundary"></div>
+</div>

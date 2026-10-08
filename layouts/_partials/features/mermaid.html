@@ -1,0 +1,118 @@
+{{- $globalMermaid := site.Params.mermaid -}}
+{{- $globalEnabled := false -}}
+
+{{- if $globalMermaid -}}
+  {{- if eq (printf "%T" $globalMermaid) "bool" -}}
+    {{- $globalEnabled = $globalMermaid -}}
+  {{- else -}}
+    {{- $globalEnabled = $globalMermaid.enabled | default false -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $pageMermaid := .Params.mermaid -}}
+{{- $pageEnabled := false -}}
+
+{{- if $pageMermaid -}}
+  {{- if eq (printf "%T" $pageMermaid) "bool" -}}
+    {{- $pageEnabled = $pageMermaid -}}
+  {{- else -}}
+    {{- $pageEnabled = $pageMermaid.enabled | default false -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $shouldLoad := false -}}
+{{- if $globalEnabled -}}
+  {{- $shouldLoad = true -}}
+{{- else if $pageEnabled -}}
+  {{- $shouldLoad = true -}}
+{{- end -}}
+
+{{- if and $shouldLoad (.Store.Get "hasMermaid") -}}
+  <style>
+    svg[id^="mermaid-"] {
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    const RENDERED_EVENT = "mermaid:rendered";
+
+    function getCurrentTheme() {
+      return document.documentElement.classList.contains("dark") ? "dark" : "default";
+    }
+
+    function getMermaidNodes(root = document) {
+      const nodes = [];
+      if (root?.matches?.(".mermaid")) nodes.push(root);
+      root?.querySelectorAll?.(".mermaid").forEach((node) => nodes.push(node));
+      return nodes;
+    }
+
+    function getToolSource(element) {
+      const source = element.closest("[data-mermaid-tool]")?.querySelector("[data-mermaid-source]");
+      if (!source) return "";
+      if ("value" in source) return source.value.trim();
+      return source.textContent?.trim() || "";
+    }
+
+    function prepareNode(element, reset) {
+      const originalCode =
+        element.getAttribute("data-original-code") ||
+        getToolSource(element) ||
+        element.textContent.trim();
+
+      if (!originalCode) return;
+
+      element.setAttribute("data-original-code", originalCode);
+
+      if (reset || element.hasAttribute("data-processed") || element.querySelector("svg")) {
+        element.removeAttribute("data-processed");
+        element.textContent = originalCode;
+      }
+    }
+
+    async function renderMermaid(root = document, options = {}) {
+      const nodes = getMermaidNodes(root);
+      if (nodes.length === 0) return;
+
+      nodes.forEach((node) => prepareNode(node, Boolean(options.reset)));
+
+      await mermaid.run({ nodes });
+      window.dispatchEvent(new CustomEvent(RENDERED_EVENT, { detail: { root } }));
+    }
+
+    function initializeMermaid(theme) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme,
+        securityLevel: "loose",
+      });
+    }
+
+    initializeMermaid(getCurrentTheme());
+    window.thirtyBeforeRenderMermaid = (root = document) => renderMermaid(root, { reset: true });
+
+    const boot = () => {
+      renderMermaid(document).catch((error) => {
+        console.error("Mermaid render failed:", error);
+      });
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", boot, { once: true });
+    } else {
+      boot();
+    }
+
+    window.addEventListener("themeChanged", async () => {
+      try {
+        initializeMermaid(getCurrentTheme());
+        await renderMermaid(document, { reset: true });
+      } catch (error) {
+        console.error("Mermaid theme update failed:", error);
+      }
+    });
+  </script>
+{{- end -}}

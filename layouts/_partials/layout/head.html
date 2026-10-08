@@ -1,0 +1,152 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<title>
+  {{- if .IsHome -}}
+    {{ site.Title }}
+  {{- else if .Title -}}
+    {{ .Title }} |
+    {{ site.Title }}
+  {{- else -}}
+    {{ site.Title }}
+  {{- end -}}
+
+</title>
+
+<meta
+  name="description"
+  content="{{- with .Description -}}
+    {{ . | plainify | truncate 160 `...` }}
+  {{- else -}}
+    {{- with .Params.summary -}}
+      {{ . | plainify | truncate 160 `...` }}
+    {{- else -}}
+      {{- if or .IsPage .IsSection -}}
+        {{- if .Content -}}
+          {{ .Content | plainify | truncate 150 `...` }}
+        {{- else -}}
+          {{- with site.Params.description -}}
+            {{ . | plainify | truncate 160 `...` }}
+          {{- else -}}
+            {{ printf `%s - %s` .Title site.Title | plainify | truncate 160 `...` }}
+          {{- end -}}
+        {{- end -}}
+      {{- else -}}
+        {{- with site.Params.description -}}
+          {{ . | plainify | truncate 160 `...` }}
+        {{- else -}}
+          {{ printf `%s - %s` .Title site.Title | plainify | truncate 160 `...` }}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}"
+/>
+<meta
+  name="keywords"
+  content="{{- with .Params.tags -}}
+    {{ delimit . `, ` }}
+  {{- else -}}
+    {{- with site.Params.keywords -}}{{ delimit . `, ` }}{{- end -}}
+  {{- end -}}"
+/>
+<meta
+  name="author"
+  content="{{- with .Params.author -}}
+    {{ . }}
+  {{- else -}}
+    {{ site.Params.defaultAuthor }}
+  {{- end -}}"
+/>
+<meta name="language" content="{{ site.Params.language | default site.Language.Locale }}" />
+
+<meta
+  name="robots"
+  content="{{- with .Params.robots -}}
+    {{ . }}
+  {{- else -}}
+    index, follow
+  {{- end -}}"
+/>
+<link rel="canonical" href="{{ .Permalink }}" />
+
+{{- $favicon := site.Params.favicon | default dict -}}
+{{- $faviconVersion := $favicon.version | default "" -}}
+{{- $faviconQuery := "" -}}
+{{- with $faviconVersion }}
+  {{- $faviconQuery = printf "?v=%s" . -}}
+{{- end -}}
+{{- with $favicon.ico }}
+  <link rel="shortcut icon" href="{{ strings.TrimPrefix `/` . | relURL }}{{ $faviconQuery }}" />
+{{- end }}
+{{- with $favicon.png }}
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ strings.TrimPrefix `/` . | relURL }}{{ $faviconQuery }}" />
+{{- else }}
+  {{- with $favicon.svg }}
+    <link rel="icon" type="image/svg+xml" href="{{ strings.TrimPrefix `/` . | relURL }}{{ $faviconQuery }}" />
+  {{- else }}
+    <link rel="icon" type="image/svg+xml" href="{{ `favicon.svg` | relURL }}{{ $faviconQuery }}" />
+  {{- end }}
+{{- end }}
+{{- with $favicon.appleTouchIcon }}
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ strings.TrimPrefix `/` . | relURL }}{{ $faviconQuery }}" />
+{{- end }}
+
+{{- if or .IsPage .IsHome .IsSection .IsNode -}}
+  {{- $_ := .Content -}}
+{{- end -}}
+
+{{- /* --------------------------------------------------------
+       Gallery pre-scan: for multi-file page bundles (posts /
+       projects) where index.md is frontmatter-only, .Content
+       rendering above will NOT trigger render-image.html for
+       images in extra .md files — those are rendered later by
+       multi-file-content.html.  Scan the raw .md source of
+       every bundle member now so hasImageFigure is set before
+       the gallery config partial runs.
+       -------------------------------------------------------- */ -}}
+{{- if and .IsPage .File (in (slice "posts" "projects") .Section) -}}
+  {{- $hasImg := .Store.Get "hasImageFigure" | default false -}}
+  {{- if not $hasImg -}}
+    {{- $raw := .RawContent -}}
+    {{- $sections := .Params.sections -}}
+    {{- if $sections -}}
+      {{- range $sections -}}
+        {{- $fp := path.Join "content" $.File.Dir . -}}
+        {{- $raw = printf "%s\n%s" $raw (os.ReadFile $fp) -}}
+      {{- end -}}
+    {{- else -}}
+      {{- range .Resources.Match "*.md" -}}
+        {{- if ne .Name "index.md" -}}
+          {{- $fp := path.Join "content" $.File.Dir .Name -}}
+          {{- $raw = printf "%s\n%s" $raw (os.ReadFile $fp) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if findRE `!\[` $raw -}}
+      {{- .Store.Set "hasImageFigure" true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $searchConfig := partial "config/search.html" . -}}
+{{- $galleryConfig := partial "config/gallery.html" . -}}
+{{- .Scratch.Set "galleryEnabled" $galleryConfig.gallery -}}
+{{- .Scratch.Set "lightboxEnabled" $galleryConfig.lightbox -}}
+{{- .Scratch.Set "galleryConfig" $galleryConfig.galleryOptions -}}
+
+
+<link rel="manifest" href="{{ `site.webmanifest` | relURL }}{{ $faviconQuery }}" />
+{{ with site.Home.OutputFormats.Get "RSS" }}
+  <link rel="alternate" type="{{ .MediaType.String }}" href="{{ .RelPermalink }}" title="{{ site.Title }}" />
+{{ end }}
+{{ partial "layout/head/seo.html" . }}
+
+{{ partial "config/script.html" (dict "id" "search-config" "value" $searchConfig) }}
+{{ if or ($galleryConfig.gallery) ($galleryConfig.lightbox) }}
+  {{ partial "config/script.html" (dict "id" "gallery-config" "value" $galleryConfig) }}
+{{ end }}
+{{ partial "layout/head/css.html" . }}
+{{ partial "layout/head/js.html" . }}
+
+{{ partial "layout/head/custom-head.html" . }}

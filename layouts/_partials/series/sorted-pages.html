@@ -1,0 +1,77 @@
+{{/*
+  根据当前系列对文章进行排序，并返回排序后的 Page 列表。
+
+  输入：
+    pages   当前系列下的文章集合
+    series 当前系列的 taxonomy term
+
+  支持的 front matter：
+
+  单系列或旧格式：
+    series:
+      - 机器学习
+    series_order: 2
+
+  多系列格式：
+    series:
+      - 机器学习
+      - 无监督学习
+    series_order:
+      - 2
+      - 7
+
+  多系列时，series 与 series_order 按相同下标一一对应。
+*/}}
+
+{{- $pages := .pages -}}
+{{- $currentSeries := urlize (printf "%v" .series) -}}
+{{- $sortable := slice -}}
+
+{{- range $page := $pages -}}
+  {{- $order := 999999 -}}
+  {{- $rawOrder := $page.Params.series_order -}}
+
+  {{/* 新格式：series_order 是数组。 */}}
+  {{- if reflect.IsSlice $rawOrder -}}
+    {{- $articleSeries := $page.Params.series | default (slice) -}}
+
+    {{- range $index, $seriesName := $articleSeries -}}
+      {{- $normalizedSeries := urlize (printf "%v" $seriesName) -}}
+
+      {{- if and
+        (eq $normalizedSeries $currentSeries)
+        (lt $index (len $rawOrder))
+      -}}
+        {{- $candidate := index $rawOrder $index -}}
+        {{- with $candidate -}}
+          {{- $order = int . -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+  {{/* 旧格式：series_order 是单个整数或数字字符串。 */}}
+  {{- else -}}
+    {{- with $rawOrder -}}
+      {{- $order = int . -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/*
+    使用 order 作为主排序键。
+    相同序号时，再按标题排序，使输出保持稳定。
+  */}}
+  {{- $sortKey := printf "%09d|%s" $order (lower $page.LinkTitle) -}}
+  {{- $sortable = $sortable | append (dict
+    "page" $page
+    "sortKey" $sortKey
+  ) -}}
+{{- end -}}
+
+{{- $sortable = sort $sortable "sortKey" "asc" -}}
+
+{{- $sortedPages := slice -}}
+{{- range $item := $sortable -}}
+  {{- $sortedPages = $sortedPages | append $item.page -}}
+{{- end -}}
+
+{{- return $sortedPages -}}

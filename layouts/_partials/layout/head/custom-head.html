@@ -1,0 +1,41 @@
+{{- $rawHeadingNumbering := site.Params.headingNumbering | default dict -}}
+{{- $headingNumberingEnabled := true -}}
+{{- if isset $rawHeadingNumbering "enabled" -}}
+  {{- $headingNumberingEnabled = index $rawHeadingNumbering "enabled" -}}
+{{- end -}}
+{{- $headingNumbering := dict
+  "enabled" $headingNumberingEnabled
+  "maxDepth" (index $rawHeadingNumbering "maxdepth" | default 4)
+  "base" (index $rawHeadingNumbering "base" | default "first-content-heading")
+  "levelOneStyle" (index $rawHeadingNumbering "levelonestyle" | default "chinese")
+  "levelOneSuffix" (index $rawHeadingNumbering "levelonesuffix" | default "、")
+  "decimalSeparator" (index $rawHeadingNumbering "decimalseparator" | default ".")
+  "space" (index $rawHeadingNumbering "space" | default " ")
+-}}
+{{- $contentEnhancements := dict
+  "headingNumbering" $headingNumbering
+-}}
+
+<script id="content-enhancements-config" type="application/json">
+  {{- $contentEnhancements | jsonify | safeJS -}}
+</script>
+
+{{- $immersiveMode := site.Params.immersiveMode | default dict -}}
+{{- $isContentPage := and .IsPage (or (eq .Section "posts") (eq .Section "projects")) -}}
+<script id="site-ui-config" type="application/json">
+  {{- dict
+    "text" (index hugo.Data "ui-text" | default dict)
+    "page" (dict
+      "isContentPage" $isContentPage
+      "section" .Section
+      "kind" .Kind
+    )
+    "immersiveMode" (dict
+      "enabled" (index $immersiveMode "enabled" | default true)
+      "default" (index $immersiveMode "default" | default false)
+      "idleDelay" (index $immersiveMode "idledelay" | default 2000)
+    )
+    | jsonify
+    | safeJS
+  -}}
+</script>

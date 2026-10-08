@@ -1,0 +1,187 @@
+{{ define "main" }}
+  {{ $allProjects := .RegularPages }}
+  {{ $totalCount := len $allProjects }}
+
+  <div class="mx-auto max-w-6xl">
+    <!-- 页面标题和描述 -->
+    <header class="mb-8">
+      <h1 class="text-foreground mb-4 text-3xl font-bold">
+        {{ .Title }}
+      </h1>
+
+      {{ if .Content }}
+        <div class="prose prose-neutral dark:prose-invert mb-6 max-w-none">
+          {{ .Content }}
+        </div>
+      {{ else if .Description }}
+        <p class="text-muted-foreground mb-6">
+          {{ .Description }}
+        </p>
+      {{ end }}
+
+
+      <!-- 项目统计 -->
+      <div class="text-muted-foreground flex items-center gap-4 text-sm">
+        <span>{{ T "list.pages" (dict "count" $totalCount) }}</span>
+
+        <div class="ml-auto flex items-center gap-0.5">
+          <button class="sort-tax-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="title" aria-label="按名称排序" title="按名称排序">
+            {{ partial "features/icon.html" (dict "name" "list" "size" "sm" "ariaLabel" "") }}
+          </button>
+          <button class="sort-tax-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="date" aria-label="按创建时间排序" title="按创建时间排序">
+            {{ partial "features/icon.html" (dict "name" "clock" "size" "sm" "ariaLabel" "") }}
+          </button>
+          <button class="sort-tax-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="lastmod" aria-label="按最近修改排序" title="按最近修改排序">
+            {{ partial "features/icon.html" (dict "name" "edit" "size" "sm" "ariaLabel" "") }}
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 项目网格 -->
+    {{ if $allProjects }}
+      <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" id="project-cards">
+        {{ range $allProjects }}
+          <div class="contents" data-title="{{ .Title }}" data-date="{{ .Date.Format "2006-01-02" }}" data-lastmod="{{ .Lastmod.Format "2006-01-02" }}">
+            {{ partial "content/project-card.html" (dict "page" .) }}
+          </div>
+        {{ end }}
+      </div>
+
+      <nav id="client-pagination" class="pagination mt-12" aria-label="分页导航">
+        <div class="flex items-center justify-center gap-2">
+          <button id="page-prev" class="bg-muted/30 border-border/50 text-muted-foreground inline-flex cursor-not-allowed items-center gap-2 rounded-lg border px-4 py-2" disabled>
+            {{ partial "features/icon.html" (dict "name" "chevron-left" "size" "sm" "ariaLabel" "") }}
+            <span class="hidden sm:inline">上一页</span>
+          </button>
+          <div id="page-numbers" class="flex items-center gap-1"></div>
+          <button id="page-next" class="bg-card border-border hover:bg-accent/50 hover:border-primary/20 inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-medium transition-all duration-300">
+            <span class="hidden sm:inline">下一页</span>
+            {{ partial "features/icon.html" (dict "name" "chevron-right" "size" "sm" "ariaLabel" "") }}
+          </button>
+        </div>
+      </nav>
+    {{ else }}
+      <!-- 空状态 -->
+      <div class="py-16 text-center">
+        <div
+          class="bg-muted/50 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full"
+        >
+          {{ partial "features/icon.html" (dict "name" "folder" "size" "xl" "ariaLabel" "") }}
+        </div>
+        <h2 class="text-foreground mb-3 text-xl font-medium">
+          {{ T "article.empty" }}
+        </h2>
+        <a
+          href="{{ `/` | relLangURL }}"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+        >
+          {{ partial "features/icon.html" (dict "name" "home" "size" "sm" "ariaLabel" "") }}
+          {{ T "nav.backHome" }}
+        </a>
+      </div>
+    {{ end }}
+  </div>
+
+  <script>
+    (function () {
+      var container = document.getElementById('project-cards');
+      if (!container) return;
+
+      var PER_PAGE = 9;
+      var allCards = Array.prototype.slice.call(container.querySelectorAll('div[data-title]'));
+
+      var sortState = { field: 'title', dirs: { title: 'asc', date: 'desc', lastmod: 'desc' } };
+      var currentPage = 1;
+      var totalPages = Math.ceil(allCards.length / PER_PAGE);
+      var activeCls = 'text-primary';
+      var btns = document.querySelectorAll('.sort-tax-btn');
+
+      var pagePrev = document.getElementById('page-prev');
+      var pageNext = document.getElementById('page-next');
+      var pageNumbers = document.getElementById('page-numbers');
+      var paginationNav = document.getElementById('client-pagination');
+
+      function initPageUI() {
+        if (totalPages <= 1) paginationNav.style.display = 'none';
+      }
+
+      function updateBtns(field) {
+        btns.forEach(function (b) { b.classList.toggle(activeCls, b.dataset.sort === field); });
+      }
+
+      function sortCards(field) {
+        if (sortState.field === field) sortState.dirs[field] = sortState.dirs[field] === 'asc' ? 'desc' : 'asc';
+        sortState.field = field;
+        updateBtns(field);
+
+        var dir = sortState.dirs[field], mul = dir === 'asc' ? 1 : -1;
+        allCards.sort(function (a, b) {
+          var va = a.dataset[field], vb = b.dataset[field];
+          if (va < vb) return -1 * mul;
+          if (va > vb) return 1 * mul;
+          return 0;
+        });
+        allCards.forEach(function (card) { container.appendChild(card); });
+        goToPage(1);
+      }
+
+      function showPage(p) {
+        var start = (p - 1) * PER_PAGE, end = start + PER_PAGE;
+        allCards.forEach(function (card, i) { card.style.display = (i >= start && i < end) ? '' : 'none'; });
+
+        pagePrev.disabled = p <= 1;
+        pagePrev.className = p <= 1
+          ? 'bg-muted/30 border-border/50 text-muted-foreground inline-flex cursor-not-allowed items-center gap-2 rounded-lg border px-4 py-2'
+          : 'bg-card border-border hover:bg-accent/50 hover:border-primary/20 inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-medium transition-all duration-300';
+
+        pageNext.disabled = p >= totalPages;
+        pageNext.className = p >= totalPages
+          ? 'bg-muted/30 border-border/50 text-muted-foreground inline-flex cursor-not-allowed items-center gap-2 rounded-lg border px-4 py-2'
+          : 'bg-card border-border hover:bg-accent/50 hover:border-primary/20 inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-medium transition-all duration-300';
+
+        renderPageNumbers(p);
+      }
+
+      function goToPage(p) {
+        if (p < 1 || p > totalPages) return;
+        currentPage = p;
+        showPage(p);
+        window.scrollTo({ top: container.offsetTop - 80, behavior: 'smooth' });
+        if (window.syncTocOrder) window.syncTocOrder();
+      }
+
+      function renderPageNumbers(p) {
+        var html = '', pages = [];
+        if (totalPages <= 7) {
+          for (var i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+          pages.push(1);
+          if (p > 3) pages.push('...');
+          for (var i = Math.max(2, p - 1); i <= Math.min(totalPages - 1, p + 1); i++) pages.push(i);
+          if (p < totalPages - 2) pages.push('...');
+          pages.push(totalPages);
+        }
+        html = pages.map(function (pg) {
+          if (pg === '...') return '<span class="text-muted-foreground px-2">…</span>';
+          var cls = pg === p
+            ? 'bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-lg font-medium'
+            : 'border-border hover:bg-accent/50 hover:border-primary/20 flex h-10 w-10 items-center justify-center rounded-lg border font-medium transition-all duration-300 cursor-pointer';
+          return '<button class="' + cls + '"' + (pg === p ? '' : ' data-page="' + pg + '"') + '>' + pg + '</button>';
+        }).join('');
+        pageNumbers.innerHTML = html;
+        pageNumbers.querySelectorAll('[data-page]').forEach(function (btn) {
+          btn.addEventListener('click', function () { goToPage(parseInt(this.dataset.page)); });
+        });
+      }
+
+      updateBtns('title');
+      initPageUI();
+      showPage(1);
+
+      btns.forEach(function (btn) { btn.addEventListener('click', function () { sortCards(btn.dataset.sort); }); });
+      pagePrev.addEventListener('click', function () { if (!this.disabled) goToPage(currentPage - 1); });
+      pageNext.addEventListener('click', function () { if (!this.disabled) goToPage(currentPage + 1); });
+    })();
+  </script>
+{{ end }}

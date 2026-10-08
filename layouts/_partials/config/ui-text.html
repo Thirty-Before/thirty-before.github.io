@@ -1,0 +1,15 @@
+{{- $value := .fallback | default "" -}}
+{{- $root := index hugo.Data "ui-text" | default dict -}}
+{{- $cursor := $root -}}
+{{- $found := true -}}
+{{- range (split (.key | default "") ".") -}}
+  {{- if and $found (reflect.IsMap $cursor) (isset $cursor .) -}}
+    {{- $cursor = index $cursor . -}}
+  {{- else -}}
+    {{- $found = false -}}
+  {{- end -}}
+{{- end -}}
+{{- if and $found (ne $cursor nil) -}}
+  {{- $value = $cursor -}}
+{{- end -}}
+{{- $value -}}

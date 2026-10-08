@@ -1,0 +1,482 @@
+{{- $logoSrc := strings.TrimPrefix "/" site.Params.header.logo.image -}}
+{{- $inlineSearchMode := "none" -}}
+{{- $inlineSearchKind := "" -}}
+{{- $inlineSearchVariant := "" -}}
+{{- if and .IsPage (eq .Section "posts") -}}
+  {{- $inlineSearchMode = "single" -}}
+  {{- $inlineSearchKind = "post" -}}
+{{- else if and .IsPage (eq .Section "projects") -}}
+  {{- $inlineSearchMode = "single" -}}
+  {{- $inlineSearchKind = "project" -}}
+{{- else if and (eq .Kind "section") (eq .Section "posts") -}}
+  {{- $inlineSearchMode = "collection" -}}
+  {{- $inlineSearchKind = "post" -}}
+  {{- $inlineSearchVariant = "posts" -}}
+{{- else if and (eq .Kind "section") (eq .Section "projects") -}}
+  {{- $inlineSearchMode = "collection" -}}
+  {{- $inlineSearchKind = "project" -}}
+  {{- $inlineSearchVariant = "projects" -}}
+{{- else if eq .RelPermalink (`/archives/` | relLangURL) -}}
+  {{- $inlineSearchMode = "collection" -}}
+  {{- $inlineSearchKind = "post" -}}
+  {{- $inlineSearchVariant = "archives" -}}
+{{- else if and (eq .Kind "taxonomy") (eq .Data.Singular "category") -}}
+  {{- $inlineSearchMode = "collection" -}}
+  {{- $inlineSearchKind = "category" -}}
+  {{- $inlineSearchVariant = "categories" -}}
+{{- else if and (eq .Kind "taxonomy") (eq .Data.Singular "series") -}}
+  {{- $inlineSearchMode = "collection" -}}
+  {{- $inlineSearchKind = "series" -}}
+  {{- $inlineSearchVariant = "series" -}}
+{{- else if and (eq .Kind "taxonomy") (eq .Data.Singular "tag") -}}
+  {{- $inlineSearchMode = "collection" -}}
+  {{- $inlineSearchKind = "tag" -}}
+  {{- $inlineSearchVariant = "tags" -}}
+{{- end -}}
+{{- $currentPage := . -}}
+{{- $immersiveConfig := site.Params.immersiveMode | default dict -}}
+{{- $immersiveEnabled := index $immersiveConfig "enabled" | default true -}}
+{{- $immersiveLabel := partial "config/ui-text.html" (dict "key" "header.immersive" "fallback" "Immersive mode") -}}
+{{- $immersiveEnableLabel := partial "config/ui-text.html" (dict "key" "header.immersiveEnable" "fallback" "Enable immersive mode") -}}
+{{- $immersiveHiddenAllowed := and .IsPage (or (eq .Section "posts") (eq .Section "projects")) -}}
+{{- $immersiveFixedLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.fixed" "fallback" "固定") -}}
+{{- $immersiveTopFixedLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.topFixed" "fallback" "顶部固定") -}}
+{{- $immersiveBottomFixedLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.bottomFixed" "fallback" "底部固定") -}}
+{{- $immersiveDynamicLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.dynamic" "fallback" "动态") -}}
+{{- $immersiveHiddenLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.hidden" "fallback" "隐藏") -}}
+{{- $searchLabel := partial "config/ui-text.html" (dict "key" "header.search" "fallback" "Search") -}}
+
+
+<header
+  class="site-header{{ if site.Params.header.sticky }} sticky top-0 z-50{{ end }} px-4 py-6"
+  data-page-home="{{ if .IsHome }}true{{ else }}false{{ end }}"
+>
+  <script>
+    (() => {
+      const key = "thirty-before:header-search-state";
+      const header = document.currentScript?.closest(".site-header");
+      if (!header) return;
+
+      try {
+        if (header.dataset.pageHome === "true") {
+          window.sessionStorage.removeItem(key);
+          return;
+        }
+
+        const state = JSON.parse(window.sessionStorage.getItem(key) || "null");
+        if (state?.open) header.classList.add("is-search-open");
+      } catch (_) {
+        // Keep the header usable when session storage is unavailable.
+      }
+    })();
+  </script>
+
+  <div
+    class="site-header-shell border-border flex items-center rounded-xl border px-6 py-4 shadow-sm backdrop-blur-sm" style="background-color:color-mix(in oklab, var(--color-card) 95%, transparent)"
+  >
+    <!-- 桌面端布局 -->
+    <div class="desktop-header-row hidden w-full items-center md:flex md:min-w-0">
+      <!-- 左侧：站点 Logo -->
+      <div class="desktop-logo-zone flex shrink-0 items-center">
+        {{ if ne site.Params.header.logo.image "" }}
+          <a
+            href="{{ if and site.Params.header.logo.link (ne site.Params.header.logo.link `/`) }}
+              {{ site.Params.header.logo.link | relLangURL }}
+            {{ else }}
+              {{ site.Home.RelPermalink | relLangURL }}
+            {{ end }}"
+            class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-primary/30 transition-transform duration-200 hover:scale-105"
+            aria-label="{{ site.Title }}"
+          >
+            <img
+              src="{{ $logoSrc | relURL }}"
+              alt="{{ site.Title }}"
+              class="h-full w-full object-cover"
+            />
+          </a>
+        {{ else }}
+          <!-- 默认 Logo：使用站点标题首字母 -->
+          <a
+            href="{{ site.Home.RelPermalink }}"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/30 text-lg font-bold transition-transform duration-200 hover:scale-105"
+            aria-label="{{ site.Title }}"
+          >
+            {{ substr site.Title 0 1 | upper }}
+          </a>
+        {{ end }}
+
+        <div class="desktop-search-nav items-center gap-2">
+          {{ range site.Menus.main }}
+            {{ if ne .Name "更多" }}
+              {{ $menuURL := .URL }}
+              {{ if .PageRef }}
+                {{ with site.GetPage .PageRef }}
+                  {{ $menuURL = .RelPermalink }}
+                {{ else }}
+                  {{ $menuURL = .URL | relLangURL }}
+                {{ end }}
+              {{ end }}
+              {{ $isIconActive := eq $currentPage.RelPermalink $menuURL }}
+              {{ if and (eq .PageRef "/posts") (eq $currentPage.Section "posts") }}
+                {{ $isIconActive = true }}
+              {{ else if and (eq .PageRef "/projects") (eq $currentPage.Section "projects") }}
+                {{ $isIconActive = true }}
+              {{ else if and (eq .PageRef "/categories") (or (eq $currentPage.RelPermalink $menuURL) (and $currentPage.Data (eq $currentPage.Data.Singular "category"))) }}
+                {{ $isIconActive = true }}
+              {{ else if and (eq .PageRef "/series") (or (eq $currentPage.RelPermalink $menuURL) (and $currentPage.Data (eq $currentPage.Data.Singular "series"))) }}
+                {{ $isIconActive = true }}
+              {{ end }}
+              <a
+                href="{{ $menuURL }}"
+                class="desktop-search-icon-link border-border {{ if $isIconActive }}bg-accent text-accent-foreground{{ else }}bg-background text-muted-foreground hover:text-primary hover:bg-primary/10{{ end }} focus:ring-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-all duration-300 ease-out hover:scale-105 focus:ring-2 focus:outline-none active:scale-95"
+                aria-label="{{ .Name }}"
+                title="{{ .Name }}"
+                {{ if $isIconActive }}aria-current="page"{{ end }}
+              >
+                {{ if .Params.icon }}
+                  {{ partial "features/icon.html" (dict "name" .Params.icon "size" "md" "ariaLabel" .Name) }}
+                {{ end }}
+              </a>
+            {{ end }}
+          {{ end }}
+
+          <div class="desktop-search-menu relative">
+            <button
+              class="nav-link nav-submenu-toggle border-border bg-background text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-all duration-300 ease-out hover:scale-105 focus:ring-2 focus:outline-none active:scale-95"
+              data-submenu-id="search-more"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="更多"
+              title="更多"
+            >
+              {{ partial "features/icon.html" (dict "name" "layers" "size" "md" "ariaLabel" "更多") }}
+            </button>
+            <div
+              class="nav-submenu border-border bg-popover/95 absolute top-full left-0 z-50 mt-2 hidden min-w-44 space-y-1.5 rounded-xl border p-1.5 shadow-lg backdrop-blur-sm"
+              data-submenu-id="search-more"
+              role="menu"
+            >
+              {{ range site.Menus.main }}
+                {{ if eq .Name "更多" }}
+                  {{ range .Children }}
+                    {{ $childURL := .URL }}
+                    {{ if .PageRef }}
+                      {{ with site.GetPage .PageRef }}
+                        {{ $childURL = .RelPermalink }}
+                      {{ else }}
+                        {{ $childURL = .URL | relLangURL }}
+                      {{ end }}
+                    {{ else }}
+                      {{ $childURL = .URL | relLangURL }}
+                    {{ end }}
+                    <a
+                      href="{{ $childURL }}"
+                      class="nav-link text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-2 rounded-lg px-2 py-2 text-sm leading-snug transition-colors duration-200 focus:ring-2 focus:outline-none"
+                      role="menuitem"
+                    >
+                      {{ if .Params.icon }}
+                        {{ partial "features/icon.html" (dict "name" .Params.icon "size" "sm" "ariaLabel" .Name) }}
+                      {{ end }}
+                      <span>{{ .Name }}</span>
+                    </a>
+                  {{ end }}
+                {{ end }}
+              {{ end }}
+
+              {{ if site.Params.header.showThemeSwitch | default true }}
+                {{ $themes := site.Params.themes }}
+                {{ $sortedThemes := slice }}
+                {{ range $key, $theme := $themes }}
+                  {{ $sortedThemes = $sortedThemes | append (dict "key" $key "theme" $theme) }}
+                {{ end }}
+                {{ $sortedThemes = sort $sortedThemes "theme.order" }}
+
+                <div class="menu-theme-group">
+                  <button
+                    type="button"
+                    class="menu-theme-toggle text-muted-foreground hover:text-primary hover:bg-primary/10 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm leading-snug transition-all duration-200 ease-out focus:outline-none"
+                    aria-expanded="false"
+                  >
+                    {{ partial "features/icon.html" (dict "name" "palette" "size" "sm" "ariaLabel" "主题") }}
+                    <span>主题</span>
+                    {{ partial "features/icon.html" (dict "name" "chevron-down" "size" "sm" "class" "menu-theme-chevron ml-auto transition-transform duration-200") }}
+                  </button>
+
+                  <div
+                    class="menu-theme-panel dropdown-menu border-border bg-popover/95 mt-1 hidden max-h-72 w-full overflow-y-auto rounded-lg border p-1 shadow-lg backdrop-blur-sm transition-all duration-200 ease-out"
+                    data-dropdown-type="color-scheme"
+                  >
+                    {{ range $sortedThemes }}
+                      <button
+                        data-color-scheme="{{ .key }}"
+                        class="text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex w-full items-center rounded-md px-4 py-2 text-sm transition-all duration-200 ease-out focus:outline-none"
+                      >
+                        <span>{{ .theme.name }}</span>
+                      </button>
+                    {{ end }}
+                  </div>
+                </div>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中间：桌面端导航 -->
+      <nav class="desktop-main-nav mx-8 flex min-w-0 flex-1 items-center justify-center">
+        <div class="flex flex-wrap items-center justify-center space-x-1">
+          {{ $currentPage := . }}
+          {{ range site.Menus.main }}
+            {{/* 生成语言感知的URL */}}
+            {{ $menuURL := .URL }}
+            {{ if .PageRef }}
+              {{ with site.GetPage .PageRef }}
+                {{ $menuURL = .RelPermalink }}
+              {{ else }}
+                {{ $menuURL = .URL | relLangURL }}
+              {{ end }}
+            {{ end }}
+            {{ if .HasChildren }}
+              {{/* 有子菜单的父项：渲染为下拉菜单 */}}
+              {{ $menuKey := .Name | anchorize }}
+              <div class="relative">
+                <button
+                  class="nav-link nav-submenu-toggle text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none"
+                  data-submenu-id="{{ $menuKey }}"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                >
+                  {{ if .Params.icon }}
+                    {{ partial "features/icon.html" (dict "name" .Params.icon "size" "md" "ariaLabel" .Name) }}
+                  {{ end }}
+                  <span>{{ .Name }}</span>
+                  {{ partial "features/icon.html" (dict "name" "chevron-down" "size" "sm" "class" "submenu-chevron transition-transform duration-200") }}
+                </button>
+                <div
+                  class="nav-submenu border-border bg-popover/95 absolute top-full left-0 z-50 mt-2 hidden min-w-44 space-y-1.5 rounded-xl border p-1.5 shadow-lg backdrop-blur-sm"
+                  data-submenu-id="{{ $menuKey }}"
+                  role="menu"
+                >
+                  {{ range .Children }}
+                    {{ $childURL := .URL }}
+                    {{ if .PageRef }}
+                      {{ with site.GetPage .PageRef }}
+                        {{ $childURL = .RelPermalink }}
+                      {{ else }}
+                        {{ $childURL = .URL | relLangURL }}
+                      {{ end }}
+                    {{ end }}
+                    {{ $isChildActive := eq $currentPage.RelPermalink $childURL }}
+                    <a
+                      href="{{ $childURL }}"
+                      class="nav-link {{ if $isChildActive }}
+                        bg-accent text-accent-foreground
+                      {{ else }}
+                        text-muted-foreground hover:text-primary hover:bg-primary/10
+                      {{ end }} focus:ring-primary/20 flex items-center gap-2 rounded-lg px-2 py-2 text-sm leading-snug transition-colors duration-200 focus:ring-2 focus:outline-none"
+                      role="menuitem"
+                      {{ if $isChildActive }}aria-current="page"{{ end }}
+                    >
+                      {{ if .Params.icon }}
+                        {{ partial "features/icon.html" (dict "name" .Params.icon "size" "sm" "ariaLabel" .Name) }}
+                      {{ end }}
+                      <span>{{ .Name }}</span>
+                    </a>
+                  {{ end }}
+                  {{ if and (eq .Name "更多") (site.Params.header.showThemeSwitch | default true) }}
+                    {{ $themes := site.Params.themes }}
+                    {{ $sortedThemes := slice }}
+                    {{ range $key, $theme := $themes }}
+                      {{ $sortedThemes = $sortedThemes | append (dict "key" $key "theme" $theme) }}
+                    {{ end }}
+                    {{ $sortedThemes = sort $sortedThemes "theme.order" }}
+
+                    <div class="menu-theme-group">
+                      <button
+                        type="button"
+                        class="menu-theme-toggle text-muted-foreground hover:text-primary hover:bg-primary/10 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm leading-snug transition-all duration-200 ease-out focus:outline-none"
+                        aria-expanded="false"
+                      >
+                        {{ partial "features/icon.html" (dict "name" "palette" "size" "sm" "ariaLabel" "主题") }}
+                        <span>主题</span>
+                        {{ partial "features/icon.html" (dict "name" "chevron-down" "size" "sm" "class" "menu-theme-chevron ml-auto transition-transform duration-200") }}
+                      </button>
+
+                      <div
+                        class="menu-theme-panel dropdown-menu border-border bg-popover/95 mt-1 hidden max-h-72 w-full overflow-y-auto rounded-lg border p-1 shadow-lg backdrop-blur-sm transition-all duration-200 ease-out"
+                        data-dropdown-type="color-scheme"
+                      >
+                        {{ range $sortedThemes }}
+                          <button
+                            data-color-scheme="{{ .key }}"
+                            class="text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex w-full items-center rounded-md px-4 py-2 text-sm transition-all duration-200 ease-out focus:outline-none"
+                          >
+                            <span>{{ .theme.name }}</span>
+                          </button>
+                        {{ end }}
+                      </div>
+                    </div>
+                  {{ end }}
+                </div>
+              </div>
+            {{ else }}
+              {{ $isActive := eq $currentPage.RelPermalink $menuURL }}
+              <a
+                href="{{ $menuURL }}"
+                class="nav-link {{ if $isActive }}
+                  nav-active-indicator bg-accent text-accent-foreground
+                {{ else }}
+                  text-muted-foreground hover:text-primary hover:bg-primary/10
+                {{ end }} focus:ring-primary/20 relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none"
+              >
+                {{ if .Params.icon }}
+                  {{ partial "features/icon.html" (dict "name" .Params.icon "size" "md" "ariaLabel" .Name) }}
+                {{ end }}
+                <span>{{ .Name }}</span>
+              </a>
+            {{ end }}
+          {{ end }}
+        </div>
+      </nav>
+
+      <!-- 右侧：桌面端控制区域 -->
+      <div class="header-actions flex shrink-0 items-center space-x-2">
+        <!-- 语言切换按钮 -->
+        {{ partial "ui/language-switcher.html" . }}
+
+        <div class="header-search-control flex items-center gap-2">
+          <input
+            class="header-search-field border-border bg-background text-foreground placeholder:text-muted-foreground h-10 rounded-lg text-sm"
+            type="search"
+            placeholder="{{ $searchLabel }}"
+            aria-label="{{ $searchLabel }}"
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            class="header-search-toggle border-border bg-background text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex h-10 w-10 items-center justify-center rounded-lg border transition-all duration-300 ease-out hover:scale-105 focus:ring-2 focus:outline-none active:scale-95"
+            aria-label="{{ $searchLabel }}"
+            title="{{ $searchLabel }}"
+            aria-pressed="false"
+          >
+            {{ partial "features/icon.html" (dict "name" "search" "size" "md" "ariaLabel" $searchLabel) }}
+          </button>
+        </div>
+
+        {{ if $immersiveEnabled }}
+          {{ partial "ui/immersive-mode-switcher.html" (dict "hiddenAllowed" $immersiveHiddenAllowed) }}
+        {{ end }}
+
+        <!-- 明暗模式切换按钮 -->
+        {{ partial "ui/dark-mode-switcher.html" . }}
+      </div>
+    </div>
+
+    <!-- 移动端布局 -->
+    <div class="mobile-header-row flex w-full items-center justify-between md:hidden">
+      <!-- 左侧：移动端快捷入口与菜单按钮 -->
+      <div class="flex shrink-0 items-center gap-2">
+        {{ $isHomeQuickActive := .IsHome }}
+        {{ if ne site.Params.header.logo.image "" }}
+          <a
+            href="{{ site.Home.RelPermalink | relLangURL }}"
+            class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-primary/30 transition-transform duration-200 hover:scale-105"
+            aria-label="{{ site.Title }}"
+            title="{{ site.Title }}"
+            {{ if $isHomeQuickActive }}aria-current="page"{{ end }}
+          >
+            <img
+              src="{{ $logoSrc | relURL }}"
+              alt="{{ site.Title }}"
+              class="h-full w-full object-cover"
+            />
+          </a>
+        {{ else }}
+          <a
+            href="{{ site.Home.RelPermalink }}"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 w-10 items-center justify-center rounded-full border-2 border-primary/30 text-lg font-bold transition-transform duration-200 hover:scale-105"
+            aria-label="{{ site.Title }}"
+            title="{{ site.Title }}"
+            {{ if $isHomeQuickActive }}aria-current="page"{{ end }}
+          >
+            {{ substr site.Title 0 1 | upper }}
+          </a>
+        {{ end }}
+
+        {{ partial "navigation/mobile-menu-toggle.html" . }}
+
+        {{ with site.GetPage "/posts" }}
+          {{ $isPostsQuickActive := eq $currentPage.Section "posts" }}
+          <a
+            href="{{ .RelPermalink }}"
+            class="mobile-quick-link border-border {{ if $isPostsQuickActive }}bg-accent text-accent-foreground{{ else }}bg-background text-muted-foreground hover:bg-accent hover:text-foreground{{ end }} flex h-10 w-10 items-center justify-center rounded-lg border transition-colors duration-200"
+            aria-label="文章"
+            title="文章"
+          >
+            {{ partial "features/icon.html" (dict "name" "posts" "size" "md" "ariaLabel" "文章") }}
+          </a>
+        {{ end }}
+
+        {{ with site.GetPage "/projects" }}
+          {{ $isProjectsQuickActive := eq $currentPage.Section "projects" }}
+          <a
+            href="{{ .RelPermalink }}"
+            class="mobile-quick-link border-border {{ if $isProjectsQuickActive }}bg-accent text-accent-foreground{{ else }}bg-background text-muted-foreground hover:bg-accent hover:text-foreground{{ end }} flex h-10 w-10 items-center justify-center rounded-lg border transition-colors duration-200"
+            aria-label="项目"
+            title="项目"
+          >
+            {{ partial "features/icon.html" (dict "name" "projects" "size" "md" "ariaLabel" "项目") }}
+          </a>
+        {{ end }}
+      </div>
+
+
+      <!-- 右侧：移动端控制区域 -->
+      <div class="header-actions flex shrink-0 items-center space-x-2">
+        <!-- 语言切换按钮 -->
+        {{ partial "ui/language-switcher.html" . }}
+
+        <div class="header-search-control flex items-center gap-2">
+          <input
+            class="header-search-field border-border bg-background text-foreground placeholder:text-muted-foreground h-10 rounded-lg text-sm"
+            type="search"
+            placeholder="{{ $searchLabel }}"
+            aria-label="{{ $searchLabel }}"
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            class="header-search-toggle border-border bg-background text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex h-10 w-10 items-center justify-center rounded-lg border transition-all duration-300 ease-out hover:scale-105 focus:ring-2 focus:outline-none active:scale-95"
+            aria-label="{{ $searchLabel }}"
+            title="{{ $searchLabel }}"
+            aria-pressed="false"
+          >
+            {{ partial "features/icon.html" (dict "name" "search" "size" "md" "ariaLabel" $searchLabel) }}
+          </button>
+        </div>
+
+        {{ if $immersiveEnabled }}
+          {{ partial "ui/immersive-mode-switcher.html" (dict "hiddenAllowed" $immersiveHiddenAllowed) }}
+        {{ end }}
+
+        <!-- 明暗模式切换按钮 -->
+        {{ partial "ui/dark-mode-switcher.html" . }}
+      </div>
+    </div>
+  </div>
+
+  <!-- 移动端锚定式宽导航面板（card 下方） -->
+  {{ partial "navigation/mobile-nav-panel.html" . }}
+
+  <script id="inline-search-context" type="application/json">
+    {{ dict
+      "mode" $inlineSearchMode
+      "kind" $inlineSearchKind
+      "variant" $inlineSearchVariant
+      "permalink" .RelPermalink
+      "indexURL" (printf "%sindex.json" site.Home.RelPermalink)
+      | jsonify
+      | safeHTML
+    }}
+  </script>
+</header>

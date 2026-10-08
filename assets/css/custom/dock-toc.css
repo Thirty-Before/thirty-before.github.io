@@ -1,0 +1,189 @@
+#dock-toc-panel {
+  background: color-mix(in oklab, var(--color-card) 95%, transparent) !important;
+  bottom: calc(100% + 0.5rem);
+  height: 0;
+  left: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  transform: translateY(0.25rem);
+  transform-origin: bottom center;
+  transition:
+    height 260ms ease,
+    opacity 220ms ease,
+    transform 260ms ease,
+    visibility 220ms ease;
+  visibility: hidden;
+}
+
+#dock-toc-panel.is-open {
+  height: var(--dock-toc-target-height, var(--dock-toc-max-height, 60vh));
+  max-height: var(--dock-toc-max-height, 60vh);
+  opacity: 1;
+  overflow-y: hidden;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+#dock-toc-panel.is-open.is-scrollable {
+  overflow-y: auto;
+}
+
+#dock-toc-toggle.dock-toc-active {
+  background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  box-shadow: 0 3px 10px color-mix(in oklab, var(--color-foreground) 12%, transparent);
+  color: var(--color-primary);
+}
+
+#dock-toc-current {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  justify-content: center;
+  min-width: 5ch;
+  text-align: center;
+}
+
+.dock-toc-icon {
+  color: currentColor;
+  display: inline-flex;
+}
+
+.dock-toc-icon svg {
+  height: 100%;
+  width: 100%;
+}
+
+.dock-toc-content nav {
+  width: 100%;
+}
+
+.dock-toc-content ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.dock-toc-content ul ul {
+  border-left: 1px solid var(--color-border);
+  margin-left: 0.3rem;
+  padding-left: 0.5rem;
+}
+
+.dock-toc-content li {
+  margin: 0.2rem 0;
+}
+
+.dock-toc-content a {
+  border-radius: 0.5rem;
+  color: var(--color-muted-foreground);
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  padding: 0.45rem 0.6rem;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.dock-toc-content a:hover,
+.dock-toc-content a.active {
+  background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+}
+
+.dock-toc-content a.active {
+  box-shadow: inset 2px 0 0 var(--color-primary);
+  font-weight: 600;
+}
+
+@media (max-width: 639.98px) {
+  #dock-toc-panel {
+    padding: 0.65rem;
+  }
+
+  .dock-toc-content a {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #dock-toc-panel,
+  .dock-toc-content a {
+    transition: none;
+  }
+}
+
+/* TOC collapsible triangles */
+#TableOfContents {
+  margin: 0;
+  padding: 0;
+}
+#TableOfContents ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+#TableOfContents ul ul {
+  margin-left: 0.3rem;
+  padding-left: 0.5rem;
+}
+#TableOfContents li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#TableOfContents a {
+  padding-left: 0.9rem;
+  display: block;
+}
+.toc-parent {
+  position: relative;
+}
+.toc-parent > a {
+  padding-left: 0.9rem;
+}
+.toc-parent > a > .toc-heading-number {
+  cursor: pointer;
+}
+.toc-toggle {
+  align-items: flex-start;
+  cursor: pointer;
+  display: flex;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 0.9rem;
+  color: var(--color-muted-foreground);
+  opacity: 0.6;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  padding: 0;
+  transition: opacity 150ms ease;
+}
+.toc-parent > .toc-toggle:hover,
+.toc-parent > .toc-toggle:focus-visible,
+.toc-parent:has(> a > .toc-heading-number:hover) > .toc-toggle,
+.toc-parent:has(> a > .toc-heading-number:focus-visible) > .toc-toggle {
+  opacity: 1;
+  color: var(--color-primary);
+}
+.toc-toggle svg {
+  flex-shrink: 0;
+  margin-top: 0.73rem;
+  margin-left: 0.1rem;
+  transition: transform 180ms ease;
+}
+.toc-toggle.toc-collapsed svg {
+  transform: rotate(-90deg);
+}
+.toc-parent > ul.toc-collapsed {
+  display: none;
+}

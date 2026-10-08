@@ -1,0 +1,73 @@
+{{- /* ============================================================
+       Table render hook — supports forced display modes.
+
+       Source priority for tableMode (highest first):
+       1. Markdown per-table attribute:   {tableMode="scroll"} below table
+       2. Page frontmatter:               tableMode: "scroll" | "stretch"
+       3. Site config:                    params.tableMode: "scroll" | "stretch"
+       4. (unset)                         JS auto-detects at runtime
+
+       The data-table-mode attribute on the <table> element is
+       consumed by media-enhancements.js to short-circuit its
+       natural-width measurement.
+
+       Renders full GFM-compliant table. Hugo >= 0.134.0 table hook
+       API uses .THead/.TBody (each cell has .Text / .Alignment).
+       ============================================================ */ -}}
+
+{{- $tableMode := "" -}}
+{{- /* Goldmark auto-lowercases attribute keys, so try both casings */ -}}
+{{- with .Attributes.tableMode -}}
+  {{- $tableMode = . -}}
+{{- else -}}
+  {{- with .Attributes.tablemode -}}
+    {{- $tableMode = . -}}
+  {{- else -}}
+    {{- with .Page.Params.tableMode -}}
+      {{- $tableMode = . -}}
+    {{- else -}}
+      {{- with site.Params.tableMode -}}
+        {{- $tableMode = . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+<table
+  {{- if $tableMode }} data-table-mode="{{ $tableMode }}"{{ end }}
+  {{- range $k, $v := .Attributes }}
+    {{- if and $v (ne $k "tableMode") (ne $k "tablemode") }}
+      {{- printf " %s=%q" $k $v | safeHTMLAttr }}
+    {{- end }}
+  {{- end }}>
+  <thead>
+    {{- range .THead }}
+      <tr>
+        {{- range . }}
+          <th
+            {{- with .Alignment }}
+              {{- printf " style=%q" (printf "text-align: %s" .) | safeHTMLAttr }}
+            {{- end -}}
+          >
+            {{- .Text -}}
+          </th>
+        {{- end }}
+      </tr>
+    {{- end }}
+  </thead>
+  <tbody>
+    {{- range .TBody }}
+      <tr>
+        {{- range . }}
+          <td
+            {{- with .Alignment }}
+              {{- printf " style=%q" (printf "text-align: %s" .) | safeHTMLAttr }}
+            {{- end -}}
+          >
+            {{- .Text -}}
+          </td>
+        {{- end }}
+      </tr>
+    {{- end }}
+  </tbody>
+</table>

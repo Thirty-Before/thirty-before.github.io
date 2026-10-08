@@ -1,0 +1,159 @@
+{{- $records := slice -}}
+
+{{- range where site.RegularPages "Section" "posts" -}}
+  {{- $summary := .Params.summary | default .Params.description | default (.Summary | plainify | truncate 180) -}}
+  {{- $cover := .Params.cover | default "" -}}
+  {{- if and $cover (not (or (hasPrefix $cover "/") (hasPrefix $cover "http://") (hasPrefix $cover "https://"))) -}}
+    {{- with .Resources.GetMatch $cover -}}
+      {{- $cover = .RelPermalink -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $records = $records | append (dict
+    "kind" "post"
+    "title" .Title
+    "summary" ($summary | plainify)
+    "content" .Plain
+    "permalink" .RelPermalink
+    "section" .Section
+    "date" (partial "helpers/date.html" (dict "date" .Date "variant" "long"))
+    "readingTime" .ReadingTime
+    "tags" (.Params.tags | default (slice))
+    "categories" (.Params.categories | default (slice))
+    "series" (.Params.series | default (slice))
+    "cover" $cover
+    "count" 0
+    )
+  -}}
+{{- end -}}
+
+{{- range where site.RegularPages "Section" "projects" -}}
+  {{- $summary := .Params.summary | default .Params.description | default (.Summary | plainify | truncate 180) -}}
+  {{- $cover := .Params.cover | default "" -}}
+  {{- if and $cover (not (or (hasPrefix $cover "/") (hasPrefix $cover "http://") (hasPrefix $cover "https://"))) -}}
+    {{- with .Resources.GetMatch $cover -}}
+      {{- $cover = .RelPermalink -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $records = $records | append (dict
+    "kind" "project"
+    "title" .Title
+    "summary" ($summary | plainify)
+    "content" .Plain
+    "permalink" .RelPermalink
+    "section" .Section
+    "date" (partial "helpers/date.html" (dict "date" .Date "variant" "long"))
+    "readingTime" .ReadingTime
+    "tags" (.Params.tags | default (slice))
+    "categories" (.Params.categories | default (slice))
+    "series" (.Params.series | default (slice))
+    "cover" $cover
+    "count" 0
+    )
+  -}}
+{{- end -}}
+
+{{- with site.GetPage "/categories" -}}
+  {{- $terms := .Data.Terms.ByCount -}}
+  {{- $orderedTerms := slice -}}
+  {{- range $terms -}}
+    {{- if .Page.File -}}
+      {{- $orderedTerms = $orderedTerms | append . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range $terms -}}
+    {{- if not .Page.File -}}
+      {{- $orderedTerms = $orderedTerms | append . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range $orderedTerms -}}
+    {{- $termPage := .Page -}}
+    {{- $summary := $termPage.Description | default ($termPage.Summary | plainify | truncate 180) -}}
+    {{- $cover := $termPage.Params.cover | default "" -}}
+    {{- if and $cover (not (or (hasPrefix $cover "/") (hasPrefix $cover "http://") (hasPrefix $cover "https://"))) -}}
+      {{- with $termPage.Resources.GetMatch $cover -}}
+        {{- $cover = .RelPermalink -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $records = $records | append (dict
+      "kind" "category"
+      "title" $termPage.LinkTitle
+      "summary" ($summary | plainify)
+      "content" ($termPage.Plain | default "")
+      "permalink" $termPage.RelPermalink
+      "section" "categories"
+      "date" ""
+      "readingTime" 0
+      "tags" (slice)
+      "categories" (slice)
+      "series" (slice)
+      "cover" $cover
+      "count" .Count
+      )
+    -}}
+  {{- end -}}
+{{- end -}}
+
+{{- with site.GetPage "/series" -}}
+  {{- $terms := .Data.Terms.ByCount -}}
+  {{- $orderedTerms := slice -}}
+  {{- range $terms -}}
+    {{- if .Page.File -}}
+      {{- $orderedTerms = $orderedTerms | append . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range $terms -}}
+    {{- if not .Page.File -}}
+      {{- $orderedTerms = $orderedTerms | append . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range $orderedTerms -}}
+    {{- $termPage := .Page -}}
+    {{- $summary := $termPage.Description | default ($termPage.Summary | plainify | truncate 180) -}}
+    {{- $cover := $termPage.Params.cover | default "" -}}
+    {{- if and $cover (not (or (hasPrefix $cover "/") (hasPrefix $cover "http://") (hasPrefix $cover "https://"))) -}}
+      {{- with $termPage.Resources.GetMatch $cover -}}
+        {{- $cover = .RelPermalink -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $records = $records | append (dict
+      "kind" "series"
+      "title" $termPage.LinkTitle
+      "summary" ($summary | plainify)
+      "content" ($termPage.Plain | default "")
+      "permalink" $termPage.RelPermalink
+      "section" "series"
+      "date" ""
+      "readingTime" 0
+      "tags" (slice)
+      "categories" (slice)
+      "series" (slice)
+      "cover" $cover
+      "count" .Count
+      )
+    -}}
+  {{- end -}}
+{{- end -}}
+
+{{- with site.GetPage "/tags" -}}
+  {{- range .Data.Terms.ByCount -}}
+    {{- $termPage := .Page -}}
+    {{- $records = $records | append (dict
+      "kind" "tag"
+      "title" $termPage.LinkTitle
+      "summary" ""
+      "content" ""
+      "permalink" $termPage.RelPermalink
+      "section" "tags"
+      "date" ""
+      "readingTime" 0
+      "tags" (slice)
+      "categories" (slice)
+      "series" (slice)
+      "cover" ""
+      "count" .Count
+      )
+    -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $records | jsonify -}}

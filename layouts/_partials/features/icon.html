@@ -1,0 +1,81 @@
+{{- $name := .name -}}
+{{- $class := .class | default "" -}}
+{{- $id := .id | default "" -}}
+{{- $size := .size | default "" -}}
+{{- $ariaLabel := .ariaLabel | default "" -}}
+{{- $hidden := .hidden | default false -}}
+
+{{- $sizeClasses := dict
+  "xs" "h-3 w-3"
+  "sm" "h-4 w-4"
+  "md" "h-5 w-5"
+  "lg" "h-6 w-6"
+  "xl" "h-8 w-8"
+  "2xl" "h-10 w-10"
+-}}
+
+{{- $finalClass := $class -}}
+{{- with index $sizeClasses $size -}}
+  {{- $finalClass = printf "%s %s" . $class -}}
+{{- end -}}
+
+{{- $defaultPath := printf "icons/%s.svg" $name -}}
+{{- $iconPath := $defaultPath -}}
+{{- with index hugo.Data "ui-icons" -}}
+  {{- with index . $name -}}
+    {{- $iconPath = . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $icon := resources.Get $iconPath -}}
+{{- if and (not $icon) (ne $iconPath $defaultPath) -}}
+  {{- $icon = resources.Get $defaultPath -}}
+{{- end -}}
+
+{{- if $icon -}}
+  {{- $content := $icon.Content -}}
+  {{- $content = replaceRE `(?is)^\s*<\?xml[^>]*>\s*` "" $content -}}
+  {{- $content = replaceRE `(?is)^\s*<!DOCTYPE[^>]*>\s*` "" $content -}}
+  {{- $content = replaceRE `^(\s*<svg\b[^>]*)\s+width="[^"]*"` `$1` $content 1 -}}
+  {{- $content = replaceRE `^(\s*<svg\b[^>]*)\s+height="[^"]*"` `$1` $content 1 -}}
+  {{- $content = replaceRE `^(\s*<svg\b[^>]*)\s+class="[^"]*"` `$1` $content 1 -}}
+  {{- $content = replaceRE `fill="#(?:2c2c2c|515151|707070)"` `fill="currentColor"` $content -}}
+  {{- $content = replaceRE `fill='(?:#2c2c2c|#515151|#707070)'` `fill="currentColor"` $content -}}
+
+  {{- $attrs := "" -}}
+  {{- with ($finalClass | strings.TrimSpace) -}}
+    {{- $attrs = printf ` class="%s"` . -}}
+  {{- end -}}
+  {{- with $id -}}
+    {{- $attrs = printf `%s id="%s"` $attrs . -}}
+  {{- end -}}
+  {{- with $ariaLabel -}}
+    {{- $attrs = printf `%s aria-label="%s"` $attrs . -}}
+  {{- end -}}
+  {{- if $hidden -}}
+    {{- $attrs = printf `%s aria-hidden="true"` $attrs -}}
+  {{- end -}}
+
+  {{- $content = replaceRE `^(\s*)<svg` (printf `$1<svg%s` $attrs) $content 1 -}}
+  {{- $content | safeHTML -}}
+{{- else -}}
+  <svg
+    {{- with $id }} id="{{ . }}"{{ end }}
+    {{- with ($finalClass | strings.TrimSpace) }} class="{{ . }}"{{ end }}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    {{- with $ariaLabel }} aria-label="{{ . }}"{{ end }}
+    {{- if $hidden }} aria-hidden="true"{{ end }}
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+  {{- if hugo.IsDevelopment -}}
+    {{- warnf "Icon '%s' not found at configured path '%s' or fallback '%s'" $name $iconPath $defaultPath -}}
+  {{- end -}}
+{{- end -}}

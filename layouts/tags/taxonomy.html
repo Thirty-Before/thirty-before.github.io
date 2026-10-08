@@ -1,0 +1,169 @@
+{{ define "main" }}
+  <!-- 页面标题和描述 -->
+  <header class="mb-8">
+    <div class="mb-4 flex items-center gap-3">
+      {{ $avatarSrc := site.Params.author.avatar | default "" }}
+      {{ if ne $avatarSrc "" }}
+        <img src="{{ $avatarSrc | relURL }}" alt="{{ site.Title }}" class="h-8 w-8 rounded-full object-cover" />
+      {{ else }}
+        {{ partial "features/icon.html" (dict "name" "tag" "size" "lg" "ariaLabel" "") }}
+      {{ end }}
+      <h1 class="text-foreground text-3xl font-bold">
+        {{ .Title }}
+      </h1>
+    </div>
+
+    {{ if .Content }}
+      <div class="prose prose-neutral dark:prose-invert mb-6 max-w-none">
+        {{ .Content }}
+      </div>
+    {{ else if .Description }}
+      <p class="text-muted-foreground mb-6">
+        {{ .Description }}
+      </p>
+    {{ end }}
+
+
+    <!-- 统计信息 -->
+    <div class="text-muted-foreground flex items-center gap-4 text-sm">
+      <div class="flex items-center gap-1">
+        {{ partial "features/icon.html" (dict "name" "tag" "size" "sm" "ariaLabel" "") }}
+        <span>
+          {{ T "list.pages" (dict "count" (len .Data.Terms)) }}
+        </span>
+      </div>
+
+      <div class="ml-auto flex items-center gap-0.5">
+        <button class="sort-tax-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="title" aria-label="按名称排序" title="按名称排序">
+          {{ partial "features/icon.html" (dict "name" "list" "size" "sm" "ariaLabel" "") }}
+        </button>
+        <button class="sort-tax-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="date" aria-label="按创建时间排序" title="按创建时间排序">
+          {{ partial "features/icon.html" (dict "name" "clock" "size" "sm" "ariaLabel" "") }}
+        </button>
+        <button class="sort-tax-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="lastmod" aria-label="按最近修改排序" title="按最近修改排序">
+          {{ partial "features/icon.html" (dict "name" "edit" "size" "sm" "ariaLabel" "") }}
+        </button>
+        <button class="sort-tax-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="size" aria-label="按标签规模排序" title="按标签规模排序">
+          {{ partial "features/icon.html" (dict "name" "text" "size" "sm" "ariaLabel" "") }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 分类法术语列表 -->
+  {{ $terms := .Data.Terms.ByCount }}
+  {{ if $terms }}
+    <!-- 统一使用标签云布局 -->
+    {{ $taxonomySingular := .Data.Singular }}
+    <div class="flex flex-wrap gap-3" id="taxonomy-cards">
+      {{ $maxCount := 0 }}
+      {{ range $terms }}
+        {{ if gt .Count $maxCount }}
+          {{ $maxCount = .Count }}
+        {{ end }}
+      {{ end }}
+
+      {{ range $terms }}
+        {{ $termPage := .Page }}
+        {{ $count := .Count }}
+        {{ $termPages := .Pages }}
+        {{ $earliestDate := "" }}
+        {{ $latestLastmod := "" }}
+        {{ range $termPages }}
+          {{ if eq $earliestDate "" }}{{ $earliestDate = .Date.Format "2006-01-02" }}{{ end }}
+          {{ if lt .Date (time $earliestDate) }}{{ $earliestDate = .Date.Format "2006-01-02" }}{{ end }}
+          {{ $thisLastmod := .Lastmod.Format "2006-01-02" }}
+          {{ if eq $latestLastmod "" }}{{ $latestLastmod = $thisLastmod }}{{ end }}
+          {{ if gt .Lastmod (time $latestLastmod) }}{{ $latestLastmod = $thisLastmod }}{{ end }}
+        {{ end }}
+
+        {{ $weight := div (mul $count 4) $maxCount }}
+        {{ $weight = add $weight 1 }}
+        {{ $sizeClass := "" }}
+
+        {{ if eq $weight 1 }}
+          {{ $sizeClass = "text-sm" }}
+        {{ else if eq $weight 2 }}
+          {{ $sizeClass = "text-base" }}
+        {{ else if eq $weight 3 }}
+          {{ $sizeClass = "text-lg" }}
+        {{ else if eq $weight 4 }}
+          {{ $sizeClass = "text-xl" }}
+        {{ else }}
+          {{ $sizeClass = "text-2xl" }}
+        {{ end }}
+
+
+        <a
+          href="{{ .Page.RelPermalink }}"
+          class="bg-card border-border group {{ $sizeClass }} hover:bg-primary/10 hover:text-primary hover:border-primary/50 focus:ring-primary/20 inline-flex items-center gap-2 rounded-lg border px-3 py-2 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none"
+          data-taxonomy="{{ $taxonomySingular }}"
+          data-title="{{ $termPage.LinkTitle }}"
+          data-date="{{ $earliestDate }}"
+          data-lastmod="{{ $latestLastmod }}"
+          data-size="{{ $count }}"
+        >
+          <span
+            class="text-foreground group-hover:text-primary font-medium transition-colors duration-200"
+          >
+            {{ .Page.LinkTitle }}
+          </span>
+          <span class="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium">
+            {{ .Count }}
+          </span>
+        </a>
+      {{ end }}
+    </div>
+  {{ else }}
+    <!-- 空状态 -->
+    <div class="py-16 text-center">
+      <div class="bg-muted/50 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full">
+        {{ partial "features/icon.html" (dict "name" "tag" "size" "xl" "ariaLabel" "") }}
+      </div>
+      <h2 class="text-foreground mb-3 text-xl font-medium">
+        {{ T "article.empty" }}
+      </h2>
+    </div>
+  {{ end }}
+
+  <script>
+    (function () {
+      var container = document.getElementById('taxonomy-cards');
+      if (!container) return;
+
+      var state = { field: 'title', dirs: { title: 'asc', date: 'desc', lastmod: 'desc', size: 'desc' } };
+      var activeCls = 'text-primary';
+      var btns = document.querySelectorAll('.sort-tax-btn');
+
+      function updateBtns(field) {
+        btns.forEach(function (b) { b.classList.toggle(activeCls, b.dataset.sort === field); });
+      }
+
+      function sortCards(field) {
+        if (state.field === field) state.dirs[field] = state.dirs[field] === 'asc' ? 'desc' : 'asc';
+        state.field = field;
+        updateBtns(field);
+
+        var cards = Array.prototype.slice.call(container.querySelectorAll('a[data-title]'));
+        var dir = state.dirs[field];
+        var mul = dir === 'asc' ? 1 : -1;
+
+        cards.sort(function (a, b) {
+          var va = a.dataset[field], vb = b.dataset[field];
+          if (field === 'size') return (parseInt(va) - parseInt(vb)) * mul;
+          if (va < vb) return -1 * mul;
+          if (va > vb) return 1 * mul;
+          return 0;
+        });
+
+        cards.forEach(function (card) { container.appendChild(card); });
+      }
+
+      updateBtns('title');
+      btns.forEach(function (btn) {
+        btn.addEventListener('click', function () { sortCards(btn.dataset.sort); });
+      });
+    })();
+  </script>
+
+{{ end }}

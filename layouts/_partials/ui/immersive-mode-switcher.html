@@ -1,0 +1,50 @@
+{{- $hiddenAllowed := .hiddenAllowed | default false -}}
+{{- $label := partial "config/ui-text.html" (dict "key" "header.immersive" "fallback" "沉浸模式") -}}
+{{- $fixedLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.fixed" "fallback" "固定") -}}
+{{- $topFixedLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.topFixed" "fallback" "顶部固定") -}}
+{{- $bottomFixedLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.bottomFixed" "fallback" "底部固定") -}}
+{{- $dynamicLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.dynamic" "fallback" "动态") -}}
+{{- $hiddenLabel := partial "config/ui-text.html" (dict "key" "header.immersiveModes.hidden" "fallback" "隐藏") -}}
+{{- $items := slice
+  (dict "mode" "fixed" "label" $fixedLabel "icon" "immersive-fixed")
+  (dict "mode" "top-fixed" "label" $topFixedLabel "icon" "immersive-top-fixed")
+  (dict "mode" "bottom-fixed" "label" $bottomFixedLabel "icon" "immersive-bottom-fixed")
+  (dict "mode" "dynamic" "label" $dynamicLabel "icon" "immersive-dynamic")
+-}}
+{{- if $hiddenAllowed -}}
+  {{- $items = $items | append (dict "mode" "hidden" "label" $hiddenLabel "icon" "immersive-hidden") -}}
+{{- end -}}
+
+<div class="relative immersive-mode-menu">
+  <button
+    type="button"
+    class="immersive-mode-toggle dropdown-toggle border-border bg-background text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex h-10 w-10 items-center justify-center rounded-lg border transition-all duration-300 ease-out hover:scale-105 focus:ring-2 focus:outline-none active:scale-95"
+    data-immersive-toggle
+    aria-label="{{ $label }}"
+    aria-expanded="false"
+    aria-haspopup="menu"
+    title="{{ $label }}"
+  >
+    {{ partial "features/icon.html" (dict "name" "immersion" "size" "md" "ariaLabel" $label) }}
+  </button>
+
+  <div
+    class="immersive-mode-dropdown dropdown-menu border-border bg-popover/95 absolute top-12 right-0 z-60 hidden w-44 rounded-lg border p-1 shadow-lg backdrop-blur-sm transition-all duration-200 ease-out"
+    data-immersive-menu
+    role="menu"
+    aria-label="{{ $label }}"
+  >
+    {{- range $items -}}
+      <button
+        type="button"
+        class="immersive-mode-option text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex w-full items-center rounded-md px-4 py-2 text-sm transition-all duration-200 ease-out focus:outline-none"
+        data-immersive-mode="{{ .mode }}"
+        role="menuitemradio"
+        aria-checked="false"
+      >
+        {{ partial "features/icon.html" (dict "name" .icon "class" "mr-3 h-4 w-4" "ariaLabel" "") }}
+        <span>{{ .label }}</span>
+      </button>
+    {{- end -}}
+  </div>
+</div>

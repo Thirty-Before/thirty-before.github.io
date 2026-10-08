@@ -1,0 +1,246 @@
+/* ── Demo flow container (no border / no background) ─────────── */
+.demo-flow {
+  margin: 2.8rem 0;
+}
+
+/* ── Top boundary ────────────────────────────────────────────── */
+.demo-flow__top-boundary {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.1rem;
+}
+
+.demo-flow__top-boundary::before,
+.demo-flow__top-boundary::after {
+  content: "";
+  height: 2px;
+  flex: 1;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-primary) 48%, transparent),
+    color-mix(in oklab, var(--color-muted-foreground) 26%, transparent)
+  );
+}
+
+.demo-flow__top-boundary::after {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-muted-foreground) 26%, transparent),
+    color-mix(in oklab, var(--color-primary) 48%, transparent),
+    transparent
+  );
+}
+
+.demo-flow__label {
+  color: var(--color-primary);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 0.85rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.demo-flow__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.demo-flow__title {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--color-foreground);
+}
+
+.demo-flow__meta {
+  margin-left: auto;
+  color: var(--color-primary);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 1.0rem;
+  white-space: nowrap;
+}
+
+/* ── Source block ────────────────────────────────────────────── */
+.demo-flow__source-wrap {
+  position: relative;
+}
+
+.demo-flow__copy {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-card) 72%, transparent);
+  color: var(--color-muted-foreground);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+.demo-flow__copy:hover {
+  transform: translateY(-1px);
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  color: var(--color-foreground);
+}
+
+.demo-flow__copy svg {
+  width: 14px;
+  height: 14px;
+}
+
+.demo-flow__source {
+  margin: 0;
+  padding: 1rem 3.2rem 1rem 1.05rem;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-muted) 92%, transparent),
+    color-mix(in oklab, var(--color-muted) 88%, transparent)
+  );
+  color: var(--color-foreground);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.025);
+}
+
+.demo-flow__source code {
+  font-family: inherit;
+}
+
+/* ── Preview boundary (thin, light) ──────────────────────────── */
+.demo-flow__preview-boundary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: color-mix(in oklab, var(--color-muted-foreground) 42%, transparent);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.demo-flow__preview-boundary::before,
+.demo-flow__preview-boundary::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-muted-foreground) 18%, transparent),
+    transparent
+  );
+}
+
+/* ── Result area (bare — no border / no background) ──────────── */
+.demo-flow__result {
+  display: flow-root;
+}
+
+/* ── Bottom boundary ─────────────────────────────────────────── */
+.demo-flow__bottom-boundary {
+  height: 2px;
+  margin-top: 1.35rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-muted-foreground) 22%, transparent),
+    color-mix(in oklab, var(--color-primary) 42%, transparent),
+    color-mix(in oklab, var(--color-muted-foreground) 22%, transparent),
+    transparent
+  );
+}
+
+/* ── Toast ────────────────────────────────────────────────────── */
+.demo-flow-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(10px);
+  padding: 0.55rem 0.8rem;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-card) 92%, transparent);
+  color: var(--color-primary);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  font-size: 0.82rem;
+  z-index: 10002;
+}
+
+.demo-flow-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .demo-flow {
+    margin: 2.4rem 0;
+  }
+
+  .demo-flow__top-boundary {
+    gap: 0.65rem;
+  }
+
+  .demo-flow__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .demo-flow__meta {
+    align-self: flex-end;
+  }
+
+  .demo-flow__preview-boundary {
+    gap: 0.55rem;
+  }
+}

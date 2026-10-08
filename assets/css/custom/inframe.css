@@ -1,0 +1,188 @@
+/* ── Inframe card ─────────────────────────────────────────────── */
+.inframe-card {
+  margin: 1.75rem 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 35%, transparent);
+  border-radius: 1rem;
+  background: var(--color-card);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 14px 36px rgba(0, 0, 0, 0.07);
+}
+
+/* ── Toolbar bar ──────────────────────────────────────────────── */
+.inframe-card__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-card) 96%, var(--color-foreground)),
+    color-mix(in oklab, var(--color-card) 82%, var(--color-muted))
+  );
+}
+
+.inframe-card__bar-left {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* ── Dots ─────────────────────────────────────────────────────── */
+.inframe-card__dot {
+  width: 0.58rem;
+  height: 0.58rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-muted-foreground) 36%, transparent);
+  flex: none;
+}
+
+.inframe-card__dot:first-child {
+  background: var(--color-primary);
+}
+
+/* ── Title ────────────────────────────────────────────────────── */
+.inframe-card__title {
+  margin-left: 0.45rem;
+  color: var(--color-muted-foreground);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Actions ──────────────────────────────────────────────────── */
+.inframe-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: none;
+  position: relative;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.inframe-btn {
+  appearance: none;
+  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-card) 58%, transparent);
+  color: var(--color-muted-foreground);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+  backdrop-filter: blur(8px);
+}
+
+.inframe-btn:hover {
+  background: color-mix(in oklab, var(--color-foreground) 5%, transparent);
+  color: var(--color-foreground);
+  border-color: color-mix(in oklab, var(--color-border) 130%, transparent);
+  transform: translateY(-1px);
+}
+
+.inframe-btn svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+}
+
+/* Accent variant — open-in-new-tab */
+.inframe-btn--accent {
+  background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  border-color: color-mix(in oklab, var(--color-primary) 18%, transparent);
+}
+
+.inframe-btn--accent:hover {
+  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
+  border-color: color-mix(in oklab, var(--color-primary) 28%, transparent);
+}
+
+/* ── Copy status ──────────────────────────────────────────────── */
+.inframe-copy-status {
+  position: absolute;
+  right: 5rem;
+  top: 50%;
+  transform: translateY(-50%) translateY(2px);
+  font-size: 0.76rem;
+  color: var(--color-primary);
+  opacity: 0;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.inframe-copy-status.is-visible {
+  opacity: 1;
+  transform: translateY(-50%) translateY(0);
+}
+
+/* ── Iframe shell ─────────────────────────────────────────────── */
+.inframe-shell {
+  position: relative;
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+.inframe-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--color-background);
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .inframe-card__bar {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .inframe-copy-status {
+    right: 4.5rem;
+  }
+
+}
+
+@media (max-width: 720px) {
+  .inframe-card {
+    border-radius: 0.75rem;
+  }
+
+  .inframe-btn {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+}

@@ -1,0 +1,168 @@
+{{- $page := . -}}
+
+{{- /* ============================================================
+       Phase 1: Build a single continuous TOC from all sections.
+       Strips fenced code blocks before extracting headings,
+       then deduplicates anchor IDs (matching Goldmark's -1, -2
+       suffix pattern).
+       ============================================================ */ -}}
+
+{{- $sections := $page.Params.sections -}}
+{{- $tocHtml := "<nav id=\"TableOfContents\"><ul>" -}}
+{{- $seenAnchors := dict -}}
+{{- $allHeadings := slice -}}
+{{- $tocGroup := .Params.toc_group | default dict -}}
+{{- $tocGroupKey := index $tocGroup "key" | default "" -}}
+{{- $tocGroupPages := slice -}}
+{{- if and $tocGroupKey .File -}}
+  {{- range where site.RegularPages "Section" .Section -}}
+    {{- $group := .Params.toc_group | default dict -}}
+    {{- if eq (index $group "key" | default "") $tocGroupKey -}}
+      {{- $order := index $group "order" | default 999 -}}
+      {{- $tocGroupPages = $tocGroupPages | append (dict "order" (int $order) "page" .) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Fence stripping regex: matches ```...``` or ````...```` etc.
+       Uses backreference \1 so opening and closing fence counts match. */ -}}
+{{- /* Fence stripping: two passes — 4-backtick then 3-backtick code blocks.
+       Without this, # inside code fences would pollute the TOC. */ -}}
+{{- $bt := printf "%c" 96 -}}
+{{- /* Process fences from most ticks to least so nested fences don't collide */ -}}
+{{- $btFence4 := printf `(?ms)^[ \t]*%s{4,}[^\n]*\n[\s\S]*?^[ \t]*%s{4,}[ \t]*$` $bt $bt -}}
+{{- $btFence3 := printf `(?ms)^[ \t]*%s{3}[^\n]*\n[\s\S]*?^[ \t]*%s{3}[ \t]*$` $bt $bt -}}
+{{- $tildeFence := `(?ms)^[ \t]*~{3,}[^\n]*\n[\s\S]*?^[ \t]*~{3,}[ \t]*$` -}}
+{{- $normalizeBlockBoundaries := slice
+  (dict "pattern" (printf `(?m)^[ \t]*(%s{3,}[^\n]*)$` $bt) "replacement" "$1")
+  (dict "pattern" `(?m)^[ \t]*(~{3,}[^\n]*)$` "replacement" "$1")
+  (dict "pattern" `(?m)^[ \t]*(\$\$.*)$` "replacement" "$1")
+  (dict "pattern" `(?m)^[ \t]*(\\\[.*)$` "replacement" "$1")
+  (dict "pattern" `(?m)^[ \t]*(\\\].*)$` "replacement" "$1")
+-}}
+
+{{- /* Helper: extract headings from raw markdown (after fences stripped) */ -}}
+
+{{- $tocPages := slice $page -}}
+{{- if $tocGroupPages -}}
+  {{- $tocPages = slice -}}
+  {{- range sort $tocGroupPages "order" "asc" -}}
+    {{- $tocPages = $tocPages | append .page -}}
+  {{- end -}}
+{{- end -}}
+
+{{- range $tocPages -}}
+  {{- $tocPage := . -}}
+  {{- $tocSections := $tocPage.Params.sections -}}
+  {{- $pageRawNoFences := $tocPage.RawContent | replaceRE $btFence4 "" | replaceRE $btFence3 "" | replaceRE $tildeFence "" -}}
+  {{- $pageMatches := findRESubmatch `(?m)^(#{1,6})\s+(.+?)\s*$` $pageRawNoFences -}}
+  {{- range $pageMatches -}}
+    {{- $allHeadings = $allHeadings | append (dict "level" (len (index . 1)) "title" (index . 2) "page" $tocPage) -}}
+  {{- end -}}
+
+  {{- if $tocSections -}}
+    {{- range $tocSections -}}
+      {{- $fp := path.Join "content" $tocPage.File.Dir . -}}
+      {{- $fileRaw := os.ReadFile $fp | replaceRE $btFence4 "" | replaceRE $btFence3 "" | replaceRE $tildeFence "" -}}
+      {{- $fm := findRESubmatch `(?m)^(#{1,6})\s+(.+?)\s*$` $fileRaw -}}
+      {{- range $fm -}}
+        {{- $allHeadings = $allHeadings | append (dict "level" (len (index . 1)) "title" (index . 2) "page" $tocPage) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $fl := slice -}}
+    {{- $dir := path.Join "content" $tocPage.File.Dir -}}
+    {{- range (os.ReadDir $dir) -}}
+      {{- if and (not .IsDir) (strings.HasSuffix .Name ".md") (ne .Name "index.md") -}}
+        {{- $pr := index (findRE `^\d+` .Name) 0 | default "999" -}}
+        {{- $fl = $fl | append (dict "o" (int $pr) "p" (path.Join $dir .Name)) -}}
+      {{- end -}}
+    {{- end -}}
+    {{- range sort $fl "o" "asc" -}}
+      {{- $fileRaw := os.ReadFile .p | replaceRE $btFence4 "" | replaceRE $btFence3 "" | replaceRE $tildeFence "" -}}
+      {{- $fm := findRESubmatch `(?m)^(#{1,6})\s+(.+?)\s*$` $fileRaw -}}
+      {{- range $fm -}}
+        {{- $allHeadings = $allHeadings | append (dict "level" (len (index . 1)) "title" (index . 2) "page" $tocPage) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Render TOC tree with deduplicated anchors */ -}}
+{{- if $allHeadings -}}
+  {{- $first := true -}}{{- $prevLevel := 1 -}}
+  {{- $currentAnchorPage := "" -}}
+  {{- range $allHeadings -}}
+    {{- $level := .level -}}{{- $title := .title -}}{{- $headingPage := .page -}}
+    {{- if ne ($headingPage.RelPermalink | default "") ($currentAnchorPage | default "") -}}
+      {{- $seenAnchors = dict -}}
+      {{- $currentAnchorPage = $headingPage.RelPermalink -}}
+    {{- end -}}
+    {{- $cleanTitle := $title | replaceRE `\$[^$]+\$` "" | replaceRE `\$\$[^$]+\$\$` "" | replaceRE `\\\([^)]+\\\)` "" -}}
+    {{- $baseAnchor := anchorize $cleanTitle -}}
+    {{- $suffix := index $seenAnchors $baseAnchor | default 0 -}}
+    {{- $anchor := $baseAnchor -}}
+    {{- if gt $suffix 0 -}}
+      {{- $anchor = printf "%s-%d" $baseAnchor $suffix -}}
+    {{- end -}}
+    {{- $seenAnchors = merge $seenAnchors (dict $baseAnchor (add $suffix 1)) -}}
+
+    {{- if not $first -}}
+      {{- if gt $level $prevLevel -}}{{- range seq (sub $level $prevLevel) -}}{{- $tocHtml = printf "%s<ul>" $tocHtml -}}{{- end -}}
+      {{- else if lt $level $prevLevel -}}{{- range seq (sub $prevLevel $level) -}}{{- $tocHtml = printf "%s</ul></li>" $tocHtml -}}{{- end -}}
+      {{- else -}}{{- $tocHtml = printf "%s</li>" $tocHtml -}}{{- end -}}
+    {{- end -}}
+    {{- $first = false -}}
+    {{- $displayTitle := $title | replaceRE `\s*\$\$?\s*$` "" -}}
+    {{- $href := printf "#%s" $anchor -}}
+    {{- if and $tocGroupPages (ne $headingPage.RelPermalink $page.RelPermalink) -}}
+      {{- $href = printf "%s#%s" $headingPage.RelPermalink $anchor -}}
+    {{- end -}}
+    {{- $tocHtml = printf "%s<li><a href=\"%s\">%s</a>" $tocHtml $href ($displayTitle | htmlEscape) -}}
+    {{- $prevLevel = $level -}}
+  {{- end -}}
+  {{- range seq $prevLevel -}}{{- $tocHtml = printf "%s</li></ul>" $tocHtml -}}{{- end -}}
+{{- end -}}
+
+{{- $tocHtml = printf "%s</ul></nav>" $tocHtml -}}
+{{- $page.Store.Set "customTOC" $tocHtml -}}
+
+
+{{- /* ============================================================
+       Phase 2: Render ALL content as ONE continuous Markdown
+       string through a SINGLE RenderString call, so Goldmark
+       sees all headings and generates unique IDs (kem, kem-1, ...)
+       matching exactly what Phase 1 put in the TOC.
+
+       index.md body (RawContent) first, then each extra .md file
+       (with its front matter stripped).
+       ============================================================ */ -}}
+
+{{- $allMarkdown := $page.RawContent -}}
+
+{{- if $sections -}}
+  {{- range $sections -}}
+    {{- $fp := path.Join "content" $page.File.Dir . -}}
+    {{- $sliceRaw := os.ReadFile $fp | replaceRE `(?s)^---\n[\s\S]*?\n---\n` "" -}}
+    {{- $allMarkdown = printf "%s\n\n%s" $allMarkdown $sliceRaw -}}
+  {{- end -}}
+{{- else -}}
+  {{- $rl := slice -}}
+  {{- $dir := path.Join "content" $page.File.Dir -}}
+  {{- range (os.ReadDir $dir) -}}
+    {{- if and (not .IsDir) (strings.HasSuffix .Name ".md") (ne .Name "index.md") -}}
+      {{- $pr := index (findRE `^\d+` .Name) 0 | default "999" -}}
+      {{- $rl = $rl | append (dict "o" (int $pr) "p" (path.Join $dir .Name)) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range sort $rl "o" "asc" -}}
+    {{- $sliceRaw := os.ReadFile .p | replaceRE `(?s)^---\n[\s\S]*?\n---\n` "" -}}
+    {{- $allMarkdown = printf "%s\n\n%s" $allMarkdown $sliceRaw -}}
+  {{- end -}}
+{{- end -}}
+
+{{- range $normalizeBlockBoundaries -}}
+  {{- $allMarkdown = $allMarkdown | replaceRE .pattern .replacement -}}
+{{- end -}}
+
+{{- $allMarkdown | $page.RenderString -}}

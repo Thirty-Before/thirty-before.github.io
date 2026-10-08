@@ -1,0 +1,81 @@
+{{- /* Build a TOC for list/home/archive pages and store it in .Store */ -}}
+{{- $kind := .Kind -}}
+{{- $tocHtml := "" -}}
+{{- $isHome := .IsHome -}}
+{{- $isArchive := or (eq .Layout "archives") (in .RelPermalink "/archives") -}}
+
+{{- if $isHome -}}
+  {{- /* ---- Home page TOC ---- */ -}}
+  {{- $tocHtml = "<nav id=\"TableOfContents\"><ul>" -}}
+  {{- $tocHtml = printf "%s<li><a href=\"/\">组织主页</a></li>" $tocHtml -}}
+  {{- $contentOrder := .Site.Params.home.contentOrder | default (slice "author-section" "recent-posts") -}}
+  {{- range $contentOrder -}}
+    {{- $sectionName := . -}}
+    {{- if or (eq $sectionName "recent-posts") (eq $sectionName "recent-posts.html") -}}
+      {{- $mainSections := $.Site.MainSections | default (slice "posts") -}}
+      {{- $firstSection := index $mainSections 0 -}}
+      {{- $posts := where (where $.Site.RegularPages "Section" $firstSection) "Params.homepage" true -}}
+      {{- $recentPostsCount := $.Site.Params.home.recentPostsCount | default 5 -}}
+      {{- $posts = first $recentPostsCount $posts -}}
+      {{- if $posts -}}
+        {{- $tocHtml = printf "%s<li>最近文章<ul>" $tocHtml -}}
+        {{- range $posts -}}
+          {{- $tocHtml = printf "%s<li><a href=\"%s\">%s</a></li>" $tocHtml .RelPermalink (.Title | htmlEscape) -}}
+        {{- end -}}
+        {{- $tocHtml = printf "%s</ul></li>" $tocHtml -}}
+      {{- end -}}
+    {{- else if or (eq $sectionName "featured-projects") (eq $sectionName "featured-projects.html") -}}
+      {{- $projects := where $.Site.RegularPages "Section" "projects" -}}
+      {{- $featuredCount := $.Site.Params.home.featuredProjectsCount | default 3 -}}
+      {{- $projects = first $featuredCount $projects -}}
+      {{- if $projects -}}
+        {{- $tocHtml = printf "%s<li>精选项目<ul>" $tocHtml -}}
+        {{- range $projects -}}
+          {{- $tocHtml = printf "%s<li><a href=\"%s\">%s</a></li>" $tocHtml .RelPermalink (.Title | htmlEscape) -}}
+        {{- end -}}
+        {{- $tocHtml = printf "%s</ul></li>" $tocHtml -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $tocHtml = printf "%s</ul></nav>" $tocHtml -}}
+
+{{- else if $isArchive -}}
+  {{- /* ---- Archives page TOC ---- */ -}}
+  {{- $mainSections := .Site.MainSections -}}
+  {{- $allPosts := where .Site.RegularPages "Section" "in" $mainSections -}}
+  {{- $tocHtml = "<nav id=\"TableOfContents\"><ul>" -}}
+  {{- range $allPosts.GroupByDate "2006" -}}
+    {{- $year := .Key -}}
+    {{- $tocHtml = printf "%s<li><a href=\"#year-%s\">%s年</a><ul>" $tocHtml $year $year -}}
+    {{- range .Pages.GroupByDate "2006-01" -}}
+      {{- $month := .Key -}}
+      {{- $tocHtml = printf "%s<li><a href=\"#month-%s\">%s月</a><ul>" $tocHtml $month (index (split $month "-") 1) -}}
+      {{- range .Pages -}}
+        {{- $tocHtml = printf "%s<li><a href=\"#post-%s\">%s</a></li>" $tocHtml .Slug (.Title | htmlEscape) -}}
+      {{- end -}}
+      {{- $tocHtml = printf "%s</ul></li>" $tocHtml -}}
+    {{- end -}}
+    {{- $tocHtml = printf "%s</ul></li>" $tocHtml -}}
+  {{- end -}}
+  {{- $tocHtml = printf "%s</ul></nav>" $tocHtml -}}
+
+{{- else if eq $kind "section" -}}
+  {{- /* ---- Posts / Projects list page TOC ---- */ -}}
+  {{- $tocHtml = "<nav id=\"TableOfContents\"><ul>" -}}
+  {{- range .Pages -}}
+    {{- $tocHtml = printf "%s<li><a href=\"#card-%s\">%s</a></li>" $tocHtml .Slug (.Title | htmlEscape) -}}
+  {{- end -}}
+  {{- $tocHtml = printf "%s</ul></nav>" $tocHtml -}}
+
+{{- else if eq $kind "taxonomy" -}}
+  {{- /* ---- Categories / Series list page TOC ---- */ -}}
+  {{- $tocHtml = "<nav id=\"TableOfContents\"><ul>" -}}
+  {{- range .Pages -}}
+    {{- $tocHtml = printf "%s<li><a href=\"%s\">%s</a></li>" $tocHtml .RelPermalink (.Title | htmlEscape) -}}
+  {{- end -}}
+  {{- $tocHtml = printf "%s</ul></nav>" $tocHtml -}}
+{{- end -}}
+
+{{- if $tocHtml -}}
+  {{- .Store.Set "customTOC" $tocHtml -}}
+{{- end -}}

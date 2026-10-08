@@ -1,0 +1,270 @@
+html {
+  scrollbar-gutter: stable;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+
+.site-header .site-header-shell {
+  --header-search-width: 18rem;
+  box-sizing: border-box;
+  height: 4.625rem;
+  min-height: 4.625rem;
+  overflow: visible;
+}
+
+.site-header .desktop-search-icon-link:not(.bg-accent),
+.site-header .desktop-search-menu > .nav-submenu-toggle,
+.site-header .mobile-quick-link:not(.bg-accent),
+.site-header .nav-panel-toggle,
+.site-header .header-search-toggle,
+.site-header .dropdown-toggle,
+.site-header .language-cycle-btn {
+  background-color: transparent;
+}
+
+.site-header .desktop-search-icon-link:not(.bg-accent):hover,
+.site-header .desktop-search-menu > .nav-submenu-toggle:hover,
+.site-header .mobile-quick-link:not(.bg-accent):hover,
+.site-header .nav-panel-toggle:hover,
+.site-header .header-search-toggle:hover,
+.site-header .dropdown-toggle:hover,
+.site-header .language-cycle-btn:hover {
+  background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
+}
+
+.site-header .desktop-search-icon-link.bg-accent,
+.site-header .mobile-quick-link.bg-accent {
+  background-color: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+.site-header [data-nav-active="true"] {
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--color-foreground) 10%, transparent);
+}
+
+.site-header .nav-submenu [data-nav-active="true"],
+.site-header #mobile-nav-panel [data-nav-active="true"] {
+  background-color: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+.site-header [data-nav-parent-active="true"] {
+  background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-foreground) 12%, transparent);
+}
+
+.site-header [data-nav-parent-active="true"]:hover {
+  background-color: color-mix(in oklab, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}
+
+.site-header .desktop-header-row,
+.site-header .mobile-header-row {
+  height: 2.5rem;
+  min-height: 2.5rem;
+  overflow: visible;
+}
+
+.site-header .desktop-logo-zone {
+  height: 2.5rem;
+  position: relative;
+}
+
+.site-header .desktop-main-nav {
+  height: 2.5rem;
+  min-height: 2.5rem;
+  opacity: 1;
+  overflow: visible;
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease;
+  visibility: visible;
+}
+
+.site-header .desktop-main-nav > div {
+  flex-wrap: nowrap;
+  height: 2.5rem;
+}
+
+.site-header .desktop-search-nav {
+  display: flex;
+  height: 2.5rem;
+  left: calc(100% + 1.5rem);
+  opacity: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translate(-0.35rem, -50%);
+  visibility: hidden;
+  white-space: nowrap;
+  width: max-content;
+  z-index: 30;
+  transition:
+    opacity 180ms ease,
+    transform 280ms ease,
+    visibility 180ms ease;
+}
+
+.site-header.is-search-open .desktop-main-nav {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.site-header.is-search-open .desktop-search-nav {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+  visibility: visible;
+}
+
+.site-header .header-search-control {
+  flex: 0 0 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  position: relative;
+  overflow: visible;
+  z-index: 20;
+}
+
+.site-header .header-search-toggle {
+  position: relative;
+  z-index: 2;
+}
+
+.site-header .header-search-field {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 0.5rem);
+  width: 0;
+  min-width: 0;
+  border-width: 0;
+  opacity: 0;
+  padding-left: 0;
+  padding-right: 0;
+  transform: translateY(-50%);
+  transform-origin: right center;
+  transition:
+    width 300ms ease,
+    opacity 180ms ease,
+    padding 300ms ease,
+    border-width 300ms ease;
+}
+
+.site-header.is-search-open .header-search-field {
+  width: var(--header-search-width, min(20rem, 30vw));
+  border-width: 1px;
+  opacity: 1;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.site-header .header-search-field:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 20%, transparent);
+}
+
+@media (max-width: 767.98px) {
+  .site-header #mobile-nav-panel {
+    left: 1rem;
+    margin-top: 0;
+    position: absolute;
+    right: 1rem;
+    top: 6.625rem;
+    z-index: 60;
+  }
+
+  .site-header #mobile-nav-panel [data-mobile-depth-level] {
+    max-height: var(--mobile-depth-max-height, 32rem);
+    opacity: 1;
+    overflow: hidden;
+    transform: translateY(0);
+    transition:
+      max-height 260ms ease,
+      opacity 180ms ease,
+      transform 220ms ease,
+      padding 260ms ease,
+      margin 260ms ease,
+      border-width 260ms ease;
+  }
+
+  .site-header #mobile-nav-panel a[data-mobile-depth-level="1"],
+  .site-header #mobile-nav-panel a[data-mobile-depth-level="2"] {
+    --mobile-depth-max-height: 4.5rem;
+  }
+
+  .site-header #mobile-nav-panel .nav-accordion-group {
+    --mobile-depth-max-height: 48rem;
+  }
+
+  .site-header #mobile-nav-panel .menu-theme-group {
+    --mobile-depth-max-height: 32rem;
+  }
+
+  .site-header #mobile-nav-panel [data-mobile-depth-hidden] {
+    border-width: 0 !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    max-height: 0 !important;
+    opacity: 0;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+    pointer-events: none;
+    transform: translateY(-0.35rem);
+  }
+
+  .site-header.is-search-open .mobile-header-row > :first-child {
+    display: none;
+  }
+
+  .site-header.is-search-open .mobile-header-row {
+    justify-content: flex-end;
+  }
+
+  .site-header.is-search-open .mobile-header-row > .header-actions {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .site-header.is-search-open
+    .mobile-header-row
+    > .header-actions
+    > :not(.header-search-control) {
+    display: none;
+  }
+
+  .site-header.is-search-open .mobile-header-row .header-search-control {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .site-header.is-search-open .mobile-header-row .header-search-toggle {
+    flex: 0 0 2.5rem;
+    margin-left: auto;
+  }
+
+  .site-header.is-search-open .mobile-header-row .header-search-field {
+    left: 0;
+    max-width: none;
+    min-width: 0;
+    right: 3rem;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header .desktop-main-nav,
+  .site-header .desktop-search-nav,
+  .site-header .header-search-field,
+  .site-header #mobile-nav-panel [data-mobile-depth-level] {
+    transition: none;
+  }
+}

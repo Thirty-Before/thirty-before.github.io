@@ -1,0 +1,115 @@
+{{ $dockMode := .Site.Params.dock | default "scroll" }}
+{{ $tocConfig := partial "config/toc.html" . }}
+{{ $customTOC := .Store.Get "customTOC" }}
+{{ $hasToc := and $tocConfig.enabled (or (ne .TableOfContents `<nav id="TableOfContents"></nav>`) $customTOC) }}
+
+<div
+  id="dock"
+  class="pointer-events-none fixed bottom-4 left-1/2 z-9999 w-fit -translate-x-1/2 translate-y-24 opacity-0 transition-all duration-300 ease-out sm:right-0 sm:left-0 sm:mx-auto sm:translate-x-0"
+  data-dock-mode="{{ $dockMode }}"
+  role="toolbar"
+  aria-label="{{ T "ui.dockAriaLabel" }}"
+>
+  {{ if $hasToc }}
+    <div
+      id="dock-toc-panel"
+      class="dock-toc-panel border-border scrollbar-hide rounded-2xl border p-3 shadow-xl backdrop-blur-sm"
+      aria-label="目录"
+      aria-hidden="true"
+    >
+      <div id="dock-toc-content" class="dock-toc-content">
+        {{ if $customTOC }}{{ $customTOC | safeHTML }}{{ else }}{{ .TableOfContents }}{{ end }}
+      </div>
+    </div>
+  {{ end }}
+
+  <nav
+    id="dock-nav"
+    class="border-border scrollbar-hide xs:px-3 xs:py-2 mx-auto flex max-w-[calc(100vw-2rem)] min-w-fit items-center justify-center overflow-x-auto rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-sm sm:px-4 sm:py-3" style="background-color:color-mix(in oklab, var(--color-card) 95%, transparent)"
+  >
+    {{ if not .IsHome }}
+      <button
+        id="dock-back"
+        class="text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 xs:px-2 xs:py-1.5 flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none sm:px-3 sm:py-2"
+        title="{{ T "ui.dockBack" }}"
+        aria-label="{{ T "ui.dockBack" }}"
+      >
+        {{ partial "features/icon.html" (dict "name" "arrow-left" "size" "sm" "ariaLabel" "") }}
+        <span class="hidden sm:inline">{{ T "ui.dockBack" }}</span>
+      </button>
+      <div class="bg-border xs:mx-1 mx-2 h-6 w-px sm:mx-2"></div>
+    {{ end }}
+
+    <button
+      id="dock-search"
+      class="text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 xs:px-3 xs:py-1.5 flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none sm:px-4 sm:py-2"
+      title="{{ T "ui.dockSearch" }}"
+      aria-label="{{ T "ui.dockSearch" }}"
+    >
+      {{ partial "features/icon.html" (dict "name" "search" "size" "sm" "ariaLabel" "") }}
+      <span class="hidden md:inline">{{ T "ui.dockSearch" }}</span>
+    </button>
+
+    {{ if $hasToc }}
+      <div class="bg-border xs:mx-1 mx-2 h-6 w-px sm:mx-2"></div>
+      <button
+        id="dock-toc-toggle"
+        class="text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 xs:px-2 xs:py-1.5 flex max-w-36 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none sm:px-3 sm:py-2"
+        title="目录"
+        aria-label="目录"
+        aria-expanded="false"
+        aria-controls="dock-toc-panel"
+      >
+        {{ with resources.Get "catalogue.svg" }}
+          <span class="dock-toc-icon h-4 w-4 shrink-0" aria-hidden="true">
+            {{ .Content | safeHTML }}
+          </span>
+        {{ else }}
+          {{ partial "features/icon.html" (dict "name" "list" "size" "sm" "ariaLabel" "") }}
+        {{ end }}
+        <span id="dock-toc-current" class="max-w-24 truncate">目录</span>
+      </button>
+    {{ end }}
+
+    {{ $commentsEnabled := and .Site.Params.comments.enabled (ne .Params.comments false) }}
+    {{ if and .IsPage $commentsEnabled }}
+      <div class="bg-border xs:mx-1 mx-2 h-6 w-px sm:mx-2"></div>
+      <button
+        id="dock-comments"
+        class="text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 xs:px-2 xs:py-1.5 flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none sm:px-3 sm:py-2"
+        title="{{ T "ui.dockComments" }}"
+        aria-label="{{ T "ui.dockComments" }}"
+      >
+        {{ partial "features/icon.html" (dict "name" "message-circle" "size" "sm" "ariaLabel" "") }}
+        <span class="hidden sm:inline">{{ T "ui.dockComments" }}</span>
+      </button>
+    {{ end }}
+
+    <div class="bg-border xs:mx-1 mx-2 h-6 w-px sm:mx-2"></div>
+    <button
+      id="dock-top"
+      class="text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 xs:px-2 xs:py-1.5 flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none sm:px-3 sm:py-2"
+      title="{{ T "ui.dockBackToTop" }}"
+      aria-label="{{ T "ui.dockBackToTop" }}"
+    >
+      {{ partial "features/icon.html" (dict "name" "arrow-up" "size" "sm" "ariaLabel" "") }}
+      <span class="hidden sm:inline">{{ T "ui.dockTop" }}</span>
+    </button>
+  </nav>
+</div>
+
+{{ if eq $dockMode "float" }}
+  <div
+    id="dock-float-trigger"
+    class="pointer-events-auto fixed right-0 bottom-0 left-0 z-9998 cursor-pointer"
+  >
+    <div
+      class="from-muted-foreground/20 absolute inset-0 h-8 bg-linear-to-t to-transparent transition-all duration-200 ease-out"
+    ></div>
+    <div class="relative mx-auto flex h-8 w-12 items-center justify-center">
+      <span id="dock-float-icon">
+        {{ partial "features/icon.html" (dict "name" "chevron-up" "size" "xs" "ariaLabel" "") }}
+      </span>
+    </div>
+  </div>
+{{ end }}

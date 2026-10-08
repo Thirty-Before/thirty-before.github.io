@@ -1,0 +1,53 @@
+contacts:
+  - id: github
+    name: GitHub
+    type: profile
+    icon: github
+    profileName: Thirty Before
+    profileLink: https://github.com/Thirty-Before
+    buttons:
+      - text: 复制地址
+        icon: copy
+        copy: https://github.com/Thirty-Before
+      - text: 访问 GitHub
+        icon: external-link
+        url: https://github.com/Thirty-Before
+  - id: qq
+    name: QQ
+    type: profile
+    icon: QQ
+    profileName: Thirty Before
+    profileLink: 联系方式待补充
+    buttons: []
+  - id: facebook
+    name: Facebook
+    type: profile
+    icon: FaceBook
+    profileName: Thirty Before
+    profileLink: 主页地址待补充
+    buttons: []
+  - id: gmail
+    name: Gmail
+    type: email
+    icon: gmail
+    email: 邮箱待补充
+    buttons: []
+  - id: 163mail
+    name: 163 邮箱
+    type: email
+    icon: 163mail
+    email: 邮箱待补充
+    buttons: []
+  - id: rss
+    name: RSS 订阅
+    type: profile
+    icon: rss
+    profileName: Thirty Before
+    profileLink: https://thirty-before.github.io/index.xml
+    buttons:
+      - text: 复制地址
+        icon: copy
+        copy: https://thirty-before.github.io/index.xml
+      - text: 打开 RSS
+        icon: external-link
+        url: https://thirty-before.github.io/index.xml

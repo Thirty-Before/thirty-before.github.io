@@ -1,0 +1,198 @@
+<!-- 移动端锚定式宽导航面板 -->
+<div
+  id="mobile-nav-panel"
+  class="mt-2 hidden md:hidden"
+  role="navigation"
+  aria-label="{{ T `nav.menu` }}"
+  aria-hidden="true"
+  tabindex="-1"
+>
+  <div
+    class="border-border bg-popover/95 overflow-hidden rounded-xl border shadow-lg backdrop-blur-sm"
+  >
+    <!-- grid 容器用于平滑高度过渡 -->
+    <nav class="flex flex-col p-2">
+      <a
+        href="{{ site.Home.RelPermalink }}"
+        class="mobile-search-only nav-panel-link hidden {{ if .IsHome }}bg-accent text-accent-foreground{{ else }}text-muted-foreground hover:text-primary hover:bg-primary/10{{ end }} focus:ring-primary/20 items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+        data-mobile-depth-level="1"
+        data-mobile-depth-key="home"
+        data-mobile-depth-search-item="true"
+        role="menuitem"
+        {{ if .IsHome }}aria-current="page"{{ end }}
+      >
+        {{ partial "features/icon.html" (dict "name" "home" "size" "md" "ariaLabel" "主页") }}
+        <span>主页</span>
+      </a>
+
+      {{ with site.GetPage "/posts" }}
+        <a
+          href="{{ .RelPermalink }}"
+          class="mobile-search-only nav-panel-link hidden text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          data-mobile-depth-level="1"
+          data-mobile-depth-key="posts"
+          data-mobile-depth-search-item="true"
+          role="menuitem"
+        >
+          {{ partial "features/icon.html" (dict "name" "posts" "size" "md" "ariaLabel" "文章") }}
+          <span>文章</span>
+        </a>
+      {{ end }}
+
+      {{ with site.GetPage "/projects" }}
+        <a
+          href="{{ .RelPermalink }}"
+          class="mobile-search-only nav-panel-link hidden text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          data-mobile-depth-level="1"
+          data-mobile-depth-key="projects"
+          data-mobile-depth-search-item="true"
+          role="menuitem"
+        >
+          {{ partial "features/icon.html" (dict "name" "projects" "size" "md" "ariaLabel" "项目") }}
+          <span>项目</span>
+        </a>
+      {{ end }}
+
+      {{ $currentPage := . }}
+      {{ range site.Menus.main }}
+        {{ if in (slice "文章" "项目") .Name }}
+          {{ continue }}
+        {{ end }}
+        {{/* 生成语言感知的URL */}}
+        {{ $menuURL := .URL }}
+        {{ if .PageRef }}
+          {{ with site.GetPage .PageRef }}
+            {{ $menuURL = .RelPermalink }}
+          {{ else }}
+            {{ $menuURL = .URL | relLangURL }}
+          {{ end }}
+        {{ end }}
+        {{ if .HasChildren }}
+          {{/* 有子菜单的父项：手风琴折叠 */}}
+          {{ $menuKey := .Name | anchorize }}
+          <div
+            class="nav-accordion-group mobile-depth-item"
+            data-mobile-depth-level="1"
+            data-mobile-depth-key="{{ $menuKey }}"
+            data-mobile-depth-branch="accordion"
+          >
+            <button
+              class="nav-accordion-toggle text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+              data-accordion-id="{{ $menuKey }}"
+              aria-expanded="false"
+              aria-controls="accordion-{{ $menuKey }}"
+            >
+              {{ if .Params.icon }}
+                {{ partial "features/icon.html" (dict "name" .Params.icon "size" "md" "ariaLabel" .Name) }}
+              {{ end }}
+              <span class="flex-1 text-left">{{ .Name }}</span>
+              {{ partial "features/icon.html" (dict "name" "chevron-down" "size" "sm" "class" "accordion-chevron transition-transform duration-300") }}
+            </button>
+            <!-- 子菜单：grid-rows 过渡实现平滑展开 -->
+            <div
+              id="accordion-{{ $menuKey }}"
+              class="nav-accordion-panel grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-out"
+              data-accordion-id="{{ $menuKey }}"
+              aria-hidden="true"
+            >
+              <div class="overflow-hidden">
+                <div class="border-primary/20 ml-4 space-y-0.5 border-l-2 py-1 pl-3">
+                  {{ range .Children }}
+                    {{ $childURL := .URL }}
+                    {{ if .PageRef }}
+                      {{ with site.GetPage .PageRef }}
+                        {{ $childURL = .RelPermalink }}
+                      {{ else }}
+                        {{ $childURL = .URL | relLangURL }}
+                      {{ end }}
+                    {{ end }}
+                    {{ $isChildActive := eq $currentPage.RelPermalink $childURL }}
+                    <a
+                      href="{{ $childURL }}"
+                      class="nav-panel-link {{ if $isChildActive }}
+                        bg-accent text-accent-foreground
+                      {{ else }}
+                        text-muted-foreground hover:text-primary hover:bg-primary/10
+                      {{ end }} focus:ring-primary/20 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+                      data-mobile-depth-level="2"
+                      data-mobile-depth-parent="{{ $menuKey }}"
+                      data-mobile-depth-key="{{ .Name | anchorize }}"
+                      role="menuitem"
+                      {{ if $isChildActive }}aria-current="page"{{ end }}
+                    >
+                      {{ if .Params.icon }}
+                        {{ partial "features/icon.html" (dict "name" .Params.icon "size" "sm" "ariaLabel" .Name) }}
+                      {{ end }}
+                      <span>{{ .Name }}</span>
+                    </a>
+                  {{ end }}
+                  {{ if and (eq .Name "更多") (site.Params.header.showThemeSwitch | default true) }}
+                    {{ $themes := site.Params.themes }}
+                    {{ $sortedThemes := slice }}
+                    {{ range $key, $theme := $themes }}
+                      {{ $sortedThemes = $sortedThemes | append (dict "key" $key "theme" $theme) }}
+                    {{ end }}
+                    {{ $sortedThemes = sort $sortedThemes "theme.order" }}
+
+                    <div
+                      class="menu-theme-group mobile-depth-item"
+                      data-mobile-depth-level="2"
+                      data-mobile-depth-parent="{{ $menuKey }}"
+                      data-mobile-depth-key="theme"
+                      data-mobile-depth-branch="theme"
+                    >
+                      <button
+                        type="button"
+                        class="menu-theme-toggle text-muted-foreground hover:text-primary hover:bg-primary/10 focus:bg-primary/10 flex w-full box-border items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-200 ease-out focus:outline-none"
+                        aria-expanded="false"
+                      >
+                        {{ partial "features/icon.html" (dict "name" "palette" "size" "sm" "ariaLabel" "主题") }}
+                        <span class="flex-1 text-left">主题</span>
+                        {{ partial "features/icon.html" (dict "name" "chevron-down" "size" "sm" "class" "menu-theme-chevron transition-transform duration-200") }}
+                      </button>
+
+                      <div
+                        class="menu-theme-panel dropdown-menu border-border bg-popover/95 mt-1 mr-1 hidden max-h-72 overflow-y-auto rounded-lg border p-1 shadow-lg backdrop-blur-sm transition-all duration-200 ease-out"
+                        data-dropdown-type="color-scheme"
+                      >
+                        {{ range $sortedThemes }}
+                          <button
+                            data-color-scheme="{{ .key }}"
+                            class="text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex w-full box-border items-center rounded-md px-4 py-2 text-sm transition-all duration-200 ease-out focus:outline-none"
+                            data-mobile-depth-level="3"
+                            data-mobile-depth-parent="theme"
+                          >
+                            <span>{{ .theme.name }}</span>
+                          </button>
+                        {{ end }}
+                      </div>
+                    </div>
+                  {{ end }}
+                </div>
+              </div>
+            </div>
+          </div>
+        {{ else }}
+          {{ $isActive := eq $currentPage.RelPermalink $menuURL }}
+          <a
+            href="{{ $menuURL }}"
+            class="nav-panel-link {{ if $isActive }}
+              bg-accent text-accent-foreground
+            {{ else }}
+              text-muted-foreground hover:text-primary hover:bg-primary/10
+            {{ end }} focus:ring-primary/20 flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+            data-mobile-depth-level="1"
+            data-mobile-depth-key="{{ .Name | anchorize }}"
+            role="menuitem"
+            {{ if $isActive }}aria-current="page"{{ end }}
+          >
+            {{ if .Params.icon }}
+              {{ partial "features/icon.html" (dict "name" .Params.icon "size" "md" "ariaLabel" .Name) }}
+            {{ end }}
+            <span>{{ .Name }}</span>
+          </a>
+        {{ end }}
+      {{ end }}
+    </nav>
+  </div>
+</div>

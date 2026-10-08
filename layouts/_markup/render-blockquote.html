@@ -1,0 +1,319 @@
+{{/* Blockquote render hook — site override: adds custom [!ANNOT] annotation block + original alert/blockquote support */}}
+
+{{- if eq .Type "alert" -}}
+
+  {{- $alertConfig := dict
+    "note" (dict "colorVar" "note" "defaultTitle" (T "article.alert.note"))
+    "tip" (dict "colorVar" "tip" "defaultTitle" (T "article.alert.tip"))
+    "important" (dict "colorVar" "important" "defaultTitle" (T "article.alert.important"))
+    "warning" (dict "colorVar" "warning" "defaultTitle" (T "article.alert.warning"))
+    "caution" (dict "colorVar" "caution" "defaultTitle" (T "article.alert.caution"))
+  -}}
+
+  {{- if eq .AlertType "annot" -}}
+
+    {{/* ========== 批注块 ========== */}}
+    <div
+      id="annot-{{ .Ordinal }}"
+      class="annot-block alert my-6 rounded-lg transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
+      style="background-color: color-mix(in srgb, var(--color-primary) 6%, transparent);
+                border-left: 4px solid var(--color-primary);
+                --hover-bg: color-mix(in srgb, var(--color-primary) 10%, transparent);"
+      onmouseover="this.style.backgroundColor = this.style.getPropertyValue('--hover-bg')"
+      onmouseout="this.style.backgroundColor = 'color-mix(in srgb, var(--color-primary) 6%, transparent)'"
+      role="note"
+    >
+      <div class="flex items-center justify-between" style="padding: 1.5rem 1.75rem;">
+        <div class="flex items-center gap-2.5">
+          <span class="annot-icon shrink-0 inline-flex" style="width: 1.25rem; height: 1.25rem; color: color-mix(in oklab, var(--color-primary) 55%, transparent);">
+            {{ readFile "assets/icons/annot.svg" | safeHTML }}
+          </span>
+          <h4 class="annot-label text-foreground/90 m-0 font-semibold" style="font-size: 0.95rem;">
+            批注&nbsp;<span class="annot-counter" data-annot-idx></span>
+          </h4>
+        </div>
+        <button
+          class="annot-nav-btn"
+          aria-label="查看所有批注"
+          title="查看所有批注"
+          style="opacity:0;transition:opacity 150ms ease;background:color-mix(in oklab,var(--color-foreground) 6%,transparent);border:none;border-radius:0.4rem;width:1.75rem;height:1.75rem;display:flex;align-items:center;justify-content:center;cursor:pointer;color:color-mix(in oklab,var(--color-foreground) 45%,transparent);flex-shrink:0;"
+          onmouseover="this.style.background='color-mix(in oklab,var(--color-foreground) 12%,transparent)'"
+          onmouseout="this.style.background='color-mix(in oklab,var(--color-foreground) 6%,transparent)'"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+        </button>
+      </div>
+      <div class="annot-body" style="padding: 0 1.75rem 1.5rem 1.75rem;">
+        <div class="prose prose-sm text-foreground/85 max-w-none">
+          {{ .Text }}
+        </div>
+      </div>
+    </div>
+
+  {{- else -}}
+
+    {{/* ========== Standard alerts (NOTE / TIP / IMPORTANT / WARNING / CAUTION) ========== */}}
+    {{- $config := index $alertConfig .AlertType -}}
+    {{- $isCollapsible := or (eq .AlertSign "+") (eq .AlertSign "-") -}}
+    {{- $isExpanded := eq .AlertSign "+" -}}
+    {{- $alertId := printf "alert-%s-%d" .AlertType .Ordinal -}}
+    {{- $title := .AlertTitle | default $config.defaultTitle -}}
+    {{- $iconPath := printf "assets/icons/%s.svg" .AlertType -}}
+
+    <div
+      id="{{ $alertId }}"
+      class="alert alert-{{ .AlertType }} my-6 rounded-lg transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
+      data-alert-type="{{ .AlertType }}"
+      style="background-color: color-mix(in srgb, var(--color-{{ $config.colorVar }}) 10%, transparent);
+                border-left: 4px solid var(--color-{{ $config.colorVar }});
+                --hover-bg: color-mix(in srgb, var(--color-{{ $config.colorVar }}) 15%, transparent);"
+      onmouseover="this.style.backgroundColor = this.style.getPropertyValue('--hover-bg')"
+      onmouseout="this.style.backgroundColor = 'color-mix(in srgb, var(--color-{{ $config.colorVar }}) 10%, transparent)'"
+      role="alert"
+      aria-labelledby="{{ $alertId }}-title"
+    >
+      <div
+        class="{{ if $isCollapsible }}cursor-pointer{{ end }} flex items-center justify-between"
+        style="padding: 1.5rem 1.75rem;"
+        {{ if $isCollapsible }}
+          onclick="toggleAlert('{{ $alertId }}')" role="button" tabindex="0"
+          aria-expanded="{{ $isExpanded }}" aria-controls="{{ $alertId }}-content"
+          onkeydown="if(event.key==='Enter'||event.code==='Space'){toggleAlert('{{ $alertId }}');event.preventDefault();}"
+        {{ end }}
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="alert-icon shrink-0 inline-flex" style="width: 1.25rem; height: 1.25rem; color: color-mix(in oklab, var(--color-{{ $config.colorVar }}), transparent);">
+            {{ readFile $iconPath | safeHTML }}
+          </span>
+          <h4 id="{{ $alertId }}-title" class="text-foreground/90 m-0 font-semibold" style="font-size: 0.95rem;">
+            {{ $title }}&nbsp;<span class="alert-counter" data-alert-counter="{{ .AlertType }}"></span>
+          </h4>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            class="annot-nav-btn"
+            aria-label="查看所有批注"
+            title="查看所有批注"
+            style="opacity:0;transition:opacity 150ms ease;background:color-mix(in oklab,var(--color-foreground) 6%,transparent);border:none;border-radius:0.4rem;width:1.75rem;height:1.75rem;display:none;align-items:center;justify-content:center;cursor:pointer;color:color-mix(in oklab,var(--color-foreground) 45%,transparent);flex-shrink:0;"
+            onmouseover="this.style.background='color-mix(in oklab,var(--color-foreground) 12%,transparent)'"
+            onmouseout="this.style.background='color-mix(in oklab,var(--color-foreground) 6%,transparent)'"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
+          </button>
+          {{ if $isCollapsible }}
+            <div class="shrink-0 transition-transform duration-200" id="{{ $alertId }}-chevron">
+              {{ partial "features/icon.html" (dict "name" "chevron-down" "size" "sm" "ariaLabel" "") }}
+            </div>
+          {{ end }}
+        </div>
+      </div>
+      <div
+        id="{{ $alertId }}-content"
+        class="alert-content {{ if and $isCollapsible (not $isExpanded) }}hidden{{ end }}"
+        style="padding: 0 1.75rem 1.5rem 1.75rem;"
+      >
+        <div class="prose prose-sm text-foreground/85 max-w-none">
+          {{ .Text }}
+        </div>
+      </div>
+    </div>
+
+  {{- end -}}
+
+{{- else -}}
+
+  {{/* Regular blockquote */}}
+  <blockquote
+    class="border-primary bg-muted/30 hover:bg-muted/40 my-6 rounded-r-lg border-l-4 py-4 pr-4 pl-6 text-foreground/60 transition-all duration-200 ease-out hover:translate-x-1"
+  >
+    <div class="prose prose-sm max-w-none">
+      {{ .Text }}
+    </div>
+  </blockquote>
+
+{{- end -}}
+
+
+<script>
+  function toggleAlert(alertId) {
+    const content = document.getElementById(alertId + "-content");
+    const chevron = document.getElementById(alertId + "-chevron");
+    const header = content.previousElementSibling;
+
+    if (content.classList.contains("hidden")) {
+      content.classList.remove("hidden");
+      chevron.style.transform = "rotate(0deg)";
+      header.setAttribute("aria-expanded", "true");
+    } else {
+      content.classList.add("hidden");
+      chevron.style.transform = "rotate(-90deg)";
+      header.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.__annotNavInited) return;
+    window.__annotNavInited = true;
+
+    const collapsedAlerts = document.querySelectorAll(".alert-content.hidden");
+    collapsedAlerts.forEach(function (content) {
+      const alertId = content.id.replace("-content", "");
+      const chevron = document.getElementById(alertId + "-chevron");
+      if (chevron) chevron.style.transform = "rotate(-90deg)";
+    });
+
+    // --- Number alerts per type per article, show/hide nav buttons ---
+    var TYPES = ["annot", "note", "tip", "important", "warning", "caution"];
+    var TYPE_LABELS = {annot: "批注", note: "注意", tip: "提示", important: "重要", warning: "警告", caution: "小心"};
+    var TYPE_COLORS = {note: "var(--color-note)", tip: "var(--color-tip)", important: "var(--color-important)", warning: "var(--color-warning)", caution: "var(--color-caution)"};
+
+    var articles = document.querySelectorAll("article");
+    for (var a = 0; a < articles.length; a++) {
+      // Count total alerts + annots in this article
+      var totalCount = 0;
+      var typeCounts = {};
+      for (var t = 0; t < TYPES.length; t++) {
+        var type = TYPES[t];
+        var selector = type === "annot" ? ".annot-block" : '.alert[data-alert-type="' + type + '"]';
+        var blocks = articles[a].querySelectorAll(selector);
+        typeCounts[type] = blocks.length;
+        totalCount += blocks.length;
+      }
+      var showNumbers = {}; // per-type: show numbers only if ≥2 of that type
+      for (var t = 0; t < TYPES.length; t++) {
+        showNumbers[TYPES[t]] = typeCounts[TYPES[t]] >= 2;
+      }
+      var showNav = totalCount >= 2; // show three-dot if ≥2 total alerts
+
+      for (var t = 0; t < TYPES.length; t++) {
+        var type = TYPES[t];
+        var selector = type === "annot" ? ".annot-block" : '.alert[data-alert-type="' + type + '"]';
+        var blocks = articles[a].querySelectorAll(selector);
+        for (var i = 0; i < blocks.length; i++) {
+          blocks[i].setAttribute("data-alert-num", i + 1);
+          if (type === "annot") {
+            var c = blocks[i].querySelector(".annot-counter[data-annot-idx]");
+            if (c) c.textContent = showNumbers[type] ? (i + 1) : "";
+          } else {
+            var c2 = blocks[i].querySelector(".alert-counter[data-alert-counter='" + type + "']");
+            if (c2) c2.textContent = showNumbers[type] ? (i + 1) : "";
+          }
+        }
+        // Show/hide nav buttons based on TOTAL count
+        var btns = articles[a].querySelectorAll(selector + " .annot-nav-btn");
+        for (var j = 0; j < btns.length; j++) {
+          btns[j].style.display = showNav ? "flex" : "none";
+        }
+      }
+    }
+
+    // --- Nav panel (shared across all types) ---
+    if (document.getElementById("annot-nav-panel")) return;
+    var panel = document.createElement("div");
+    panel.className = "annot-nav-panel";
+    panel.id = "annot-nav-panel";
+    panel.setAttribute("role", "menu");
+    document.body.appendChild(panel);
+    var panelOpen = false;
+    var activeBtn = null;
+
+    function openPanel(btn) {
+      var article = btn.closest("article");
+      if (!article) return;
+
+      // Collect all alert blocks from all types
+      var allBlocks = [];
+      for (var t = 0; t < TYPES.length; t++) {
+        var type = TYPES[t];
+        var selector = type === "annot" ? ".annot-block" : '.alert[data-alert-type="' + type + '"]';
+        var blocks = article.querySelectorAll(selector);
+        for (var i = 0; i < blocks.length; i++) {
+          allBlocks.push({el: blocks[i], type: type, num: blocks[i].getAttribute("data-alert-num") || (i + 1), count: blocks.length});
+        }
+      }
+
+      if (allBlocks.length < 2) return;
+
+      // Sort by DOM order
+      allBlocks.sort(function(a, b) { return a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1; });
+
+      var html = "";
+      for (var k = 0; k < allBlocks.length; k++) {
+        var item = allBlocks[k];
+        var label = TYPE_LABELS[item.type] || item.type;
+        if (item.count >= 2) label += item.num;
+        var bodyEl = item.el.querySelector(".annot-body, .alert-content, .prose");
+        var text = bodyEl ? bodyEl.textContent.trim().replace(/\s+/g, " ").substring(0, 40) : "";
+        var color = item.type === "annot" ? "var(--color-primary)" : (TYPE_COLORS[item.type] || "var(--color-primary)");
+        html += '<button class="annot-nav-item" data-target="' + item.el.id + '" role="menuitem">' +
+          '<span class="annot-nav-item-num" style="color:' + color + '">' + label + '</span>' +
+          '<span class="annot-nav-item-text">' + escapeHTML(text) + (text.length >= 40 ? "…" : "") + '</span>' +
+          '</button>';
+      }
+      panel.innerHTML = html;
+
+      // Position
+      var rect = btn.getBoundingClientRect();
+      var pw = 280;
+      var left = Math.min(rect.right - pw, window.innerWidth - pw - 12);
+      if (left < 8) left = 8;
+      var top = rect.bottom + 6;
+      if (top + 280 > window.innerHeight) top = rect.top - 290;
+      if (top < 8) top = 8;
+      panel.style.left = left + "px";
+      panel.style.top = top + "px";
+
+      panel.classList.add("is-open");
+      panelOpen = true;
+      activeBtn = btn;
+
+      var items = panel.querySelectorAll(".annot-nav-item");
+      for (var j = 0; j < items.length; j++) {
+        items[j].onclick = function () {
+          var target = document.getElementById(this.getAttribute("data-target"));
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+            target.style.boxShadow = "0 0 0 3px color-mix(in oklab, var(--color-primary) 35%, transparent)";
+            setTimeout(function () { target.style.boxShadow = ""; }, 2000);
+          }
+          closePanel();
+        };
+      }
+    }
+
+    function closePanel() {
+      panel.classList.remove("is-open");
+      panelOpen = false;
+      activeBtn = null;
+    }
+
+    function escapeHTML(str) {
+      var div = document.createElement("div");
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    document.addEventListener("click", function (e) {
+      var btn = e.target.closest(".annot-nav-btn");
+      if (btn) {
+        e.stopPropagation();
+        if (panelOpen && activeBtn === btn) {
+          closePanel();
+        } else {
+          openPanel(btn);
+        }
+        return;
+      }
+      if (panelOpen && !panel.contains(e.target)) {
+        closePanel();
+      }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && panelOpen) {
+        closePanel();
+        if (activeBtn) activeBtn.focus();
+      }
+    });
+  });
+</script>

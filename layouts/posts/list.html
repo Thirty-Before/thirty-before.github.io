@@ -1,0 +1,259 @@
+{{ define "main" }}
+  {{ $mainSections := .Site.MainSections | default (slice "posts") }}
+  {{ $currentSection := .Section }}
+  {{ $isMainSection := in $mainSections $currentSection }}
+
+  {{ $allPages := .RegularPages }}
+  {{ $totalCount := len $allPages }}
+
+  <div class="mx-auto">
+    <header class="mb-8">
+      <h1 class="text-foreground mb-4 text-3xl font-bold">
+        {{ .Title }}
+      </h1>
+
+      {{ if .Content }}
+        <div class="prose prose-neutral dark:prose-invert max-w-none">
+          {{ .Content }}
+        </div>
+      {{ else if .Description }}
+        <p class="text-muted-foreground">
+          {{ .Description }}
+        </p>
+      {{ end }}
+
+      <div class="text-muted-foreground mt-4 flex items-center gap-4 text-sm">
+        <div class="flex items-center gap-1">
+          {{ partial "features/icon.html" (dict "name" "folder" "size" "sm" "ariaLabel" "") }}
+          <span id="post-count">
+            {{ if $isMainSection }}
+              {{ T "list.pages" (dict "count" $totalCount) }}
+            {{ end }}
+          </span>
+        </div>
+        <div class="flex items-center gap-1" id="page-info">
+          {{ partial "features/icon.html" (dict "name" "layers" "size" "sm" "ariaLabel" "") }}
+          <span id="page-current">1</span>
+          <span>/</span>
+          <span id="page-total">1</span>
+        </div>
+
+        <div class="ml-auto flex items-center gap-0.5">
+          <button class="sort-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="title" aria-label="按名称排序" title="按名称排序">
+            {{ partial "features/icon.html" (dict "name" "list" "size" "sm" "ariaLabel" "") }}
+          </button>
+          <button class="sort-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="date" aria-label="按发布时间排序" title="按发布时间排序">
+            {{ partial "features/icon.html" (dict "name" "clock" "size" "sm" "ariaLabel" "") }}
+          </button>
+          <button class="sort-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="lastmod" aria-label="按最近修改排序" title="按最近修改排序">
+            {{ partial "features/icon.html" (dict "name" "edit" "size" "sm" "ariaLabel" "") }}
+          </button>
+          <button class="sort-btn text-muted-foreground hover:text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors" data-sort="wordcount" aria-label="按字数排序" title="按字数排序">
+            {{ partial "features/icon.html" (dict "name" "text" "size" "sm" "ariaLabel" "") }}
+          </button>
+        </div>
+      </div>
+    </header>
+
+    {{ if $allPages }}
+      {{ if $isMainSection }}
+        <div class="space-y-4" id="post-cards">
+          {{ range $allPages }}
+            {{ partial "content/card-base.html" (dict "page" .) }}
+          {{ end }}
+        </div>
+
+        <nav id="client-pagination" class="pagination mt-12" aria-label="分页导航">
+          <div class="flex items-center justify-center gap-2">
+            <button id="page-prev" class="bg-muted/30 border-border/50 text-muted-foreground inline-flex cursor-not-allowed items-center gap-2 rounded-lg border px-4 py-2" disabled>
+              {{ partial "features/icon.html" (dict "name" "chevron-left" "size" "sm" "ariaLabel" "") }}
+              <span class="hidden sm:inline">上一页</span>
+            </button>
+            <div id="page-numbers" class="flex items-center gap-1"></div>
+            <button id="page-next" class="bg-card border-border hover:bg-accent/50 hover:border-primary/20 inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-medium transition-all duration-300">
+              <span class="hidden sm:inline">下一页</span>
+              {{ partial "features/icon.html" (dict "name" "chevron-right" "size" "sm" "ariaLabel" "") }}
+            </button>
+          </div>
+        </nav>
+      {{ end }}
+    {{ else }}
+      <div class="py-16 text-center">
+        <div
+          class="bg-muted/50 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full"
+        >
+          {{ partial "features/icon.html" (dict "name" "folder" "size" "xl" "ariaLabel" "") }}
+        </div>
+        <h2 class="text-foreground mb-3 text-xl font-medium">
+          {{ if $isMainSection }}
+            {{ T "article.empty" }}
+          {{ end }}
+        </h2>
+        <a
+          href="{{ `/` | relLangURL }}"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-xl px-6 py-3 font-medium transition-colors duration-300"
+        >
+          {{ partial "features/icon.html" (dict "name" "home" "size" "sm" "ariaLabel" "") }}
+          <span>{{ T "nav.backHome" }}</span>
+        </a>
+      </div>
+    {{ end }}
+  </div>
+
+  <script>
+    (function () {
+      var container = document.getElementById('post-cards');
+      if (!container) return;
+
+      var PER_PAGE = 6;
+
+      var allCards = Array.prototype.slice.call(container.querySelectorAll('article[data-date]'));
+
+      var sortState = {
+        field: 'date',
+        dirs: { date: 'desc', title: 'asc', lastmod: 'desc', wordcount: 'desc' }
+      };
+
+      var currentPage = 1;
+      var totalPages = Math.ceil(allCards.length / PER_PAGE);
+
+      var activeCls = 'text-primary';
+      var btns = document.querySelectorAll('.sort-btn');
+
+      // DOM refs
+      var pageCurrent = document.getElementById('page-current');
+      var pageTotal = document.getElementById('page-total');
+      var pagePrev = document.getElementById('page-prev');
+      var pageNext = document.getElementById('page-next');
+      var pageNumbers = document.getElementById('page-numbers');
+      var paginationNav = document.getElementById('client-pagination');
+
+      function initPageUI() {
+        pageTotal.textContent = totalPages;
+        if (totalPages <= 1) {
+          paginationNav.style.display = 'none';
+        }
+      }
+
+      function updateBtns(field) {
+        btns.forEach(function (b) {
+          b.classList.toggle(activeCls, b.dataset.sort === field);
+        });
+      }
+
+      function sortCards(field) {
+        if (sortState.field === field) {
+          sortState.dirs[field] = sortState.dirs[field] === 'asc' ? 'desc' : 'asc';
+        }
+        sortState.field = field;
+        updateBtns(field);
+
+        var dir = sortState.dirs[field];
+        var mul = dir === 'asc' ? 1 : -1;
+
+        allCards.sort(function (a, b) {
+          var va = a.dataset[field];
+          var vb = b.dataset[field];
+          if (field === 'wordcount') {
+            return (parseInt(va) - parseInt(vb)) * mul;
+          }
+          if (va < vb) return -1 * mul;
+          if (va > vb) return 1 * mul;
+          return 0;
+        });
+
+        // Re-append all in sorted order
+        allCards.forEach(function (card) { container.appendChild(card); });
+
+        goToPage(1);
+        if (window.syncTocOrder) window.syncTocOrder();
+      }
+
+      function showPage(p) {
+        var start = (p - 1) * PER_PAGE;
+        var end = start + PER_PAGE;
+        allCards.forEach(function (card, i) {
+          card.style.display = (i >= start && i < end) ? '' : 'none';
+        });
+        pageCurrent.textContent = p;
+
+        // Update prev/next button states
+        if (p <= 1) {
+          pagePrev.disabled = true;
+          pagePrev.className = 'bg-muted/30 border-border/50 text-muted-foreground inline-flex cursor-not-allowed items-center gap-2 rounded-lg border px-4 py-2';
+        } else {
+          pagePrev.disabled = false;
+          pagePrev.className = 'bg-card border-border hover:bg-accent/50 hover:border-primary/20 inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-medium transition-all duration-300';
+        }
+
+        if (p >= totalPages) {
+          pageNext.disabled = true;
+          pageNext.className = 'bg-muted/30 border-border/50 text-muted-foreground inline-flex cursor-not-allowed items-center gap-2 rounded-lg border px-4 py-2';
+        } else {
+          pageNext.disabled = false;
+          pageNext.className = 'bg-card border-border hover:bg-accent/50 hover:border-primary/20 inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-medium transition-all duration-300';
+        }
+
+        renderPageNumbers(p);
+      }
+
+      function goToPage(p) {
+        if (p < 1 || p > totalPages) return;
+        currentPage = p;
+        showPage(p);
+        window.scrollTo({ top: container.offsetTop - 80, behavior: 'smooth' });
+        if (window.syncTocOrder) window.syncTocOrder();
+      }
+
+      function renderPageNumbers(p) {
+        var html = '';
+        // Show: first, ..., p-2 to p+2, ..., last
+        var pages = [];
+        if (totalPages <= 7) {
+          for (var i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+          pages.push(1);
+          if (p > 3) pages.push('...');
+          var start = Math.max(2, p - 1);
+          var end = Math.min(totalPages - 1, p + 1);
+          for (var i = start; i <= end; i++) pages.push(i);
+          if (p < totalPages - 2) pages.push('...');
+          pages.push(totalPages);
+        }
+
+        html = pages.map(function (pg) {
+          if (pg === '...') return '<span class="text-muted-foreground px-2">…</span>';
+          var isActive = pg === p;
+          var cls = isActive
+            ? 'bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-lg font-medium'
+            : 'border-border hover:bg-accent/50 hover:border-primary/20 flex h-10 w-10 items-center justify-center rounded-lg border font-medium transition-all duration-300 cursor-pointer';
+          var style = isActive ? '' : ' data-page="' + pg + '"';
+          return '<button class="' + cls + '"' + style + '>' + pg + '</button>';
+        }).join('');
+
+        pageNumbers.innerHTML = html;
+
+        // Bind page number clicks
+        pageNumbers.querySelectorAll('[data-page]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            goToPage(parseInt(this.dataset.page));
+          });
+        });
+      }
+
+      // Init
+      updateBtns('date');
+      initPageUI();
+      showPage(1);
+
+      // Sort button clicks
+      btns.forEach(function (btn) {
+        btn.addEventListener('click', function () { sortCards(btn.dataset.sort); });
+      });
+
+      // Prev/next
+      pagePrev.addEventListener('click', function () { if (!this.disabled) goToPage(currentPage - 1); });
+      pageNext.addEventListener('click', function () { if (!this.disabled) goToPage(currentPage + 1); });
+    })();
+  </script>
+{{ end }}

@@ -1,0 +1,132 @@
+{{- $blockId := printf "mermaid-tool-%d" .Ordinal -}}
+{{- $title := partial "config/ui-text.html" (dict "key" "mermaid.title" "fallback" "MERMAID") -}}
+{{- $toolsLabel := partial "config/ui-text.html" (dict "key" "mermaid.tools" "fallback" "Mermaid tools") -}}
+{{- $codeLabel := partial "config/ui-text.html" (dict "key" "mermaid.code" "fallback" "Code") -}}
+{{- $renderLabel := partial "config/ui-text.html" (dict "key" "mermaid.render" "fallback" "Render") -}}
+{{- $copyLabel := partial "config/ui-text.html" (dict "key" "mermaid.copy" "fallback" "Copy") -}}
+{{- $saveLabel := partial "config/ui-text.html" (dict "key" "mermaid.save" "fallback" "Save") -}}
+{{- $zoomLabel := partial "config/ui-text.html" (dict "key" "mermaid.zoom" "fallback" "Zoom") -}}
+{{- $expandLabel := T `code.expand` -}}
+{{- $collapseLabel := T `code.collapse` -}}
+{{- $collapsedHeight := site.Params.codeblock.collapse.collapsedHeight | default 120 -}}
+{{- $autoCollapseLines := site.Params.codeblock.collapse.autoCollapseLines | default 8 -}}
+{{- $minCollapseLines := site.Params.codeblock.collapse.minCollapseLines | default 6 -}}
+{{- $autoCollapseHeight := site.Params.codeblock.collapse.autoCollapseHeight | default 400 -}}
+
+<div
+  class="mermaid-tool mermaid-render-mode code-block-container border-border bg-card my-6 overflow-hidden rounded-xl border shadow-sm transition-all duration-200 ease-out"
+  id="{{ $blockId }}"
+  data-mermaid-tool
+  data-mermaid-collapsed="false"
+  data-mermaid-foldable="false"
+  data-collapsed-height="{{ $collapsedHeight }}"
+  data-auto-collapse-lines="{{ $autoCollapseLines }}"
+  data-min-collapse-lines="{{ $minCollapseLines }}"
+  data-auto-collapse-height="{{ $autoCollapseHeight }}"
+>
+  <div class="mermaid-tool-header code-block-header bg-muted/30 border-border flex items-center justify-between border-b px-4 py-3">
+    <div class="flex items-center gap-2">
+      <div class="text-muted-foreground shrink-0">
+        {{ partial "features/icon.html" (dict "name" "code" "size" "sm" "ariaLabel" "") }}
+      </div>
+      <span class="mermaid-tool-title text-muted-foreground text-sm font-medium">
+        {{ $title }}
+      </span>
+    </div>
+
+    <div class="mermaid-tool-actions flex items-center gap-2" aria-label="{{ $toolsLabel }}">
+      <div class="mermaid-render-actions flex items-center gap-2">
+        <button
+          class="mermaid-tool-button text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          type="button"
+          data-mermaid-action="code"
+          aria-label="{{ $codeLabel }}"
+          title="{{ $codeLabel }}"
+        >
+          {{ partial "features/icon.html" (dict "name" "code" "size" "xs" "ariaLabel" "") }}
+          <span class="hidden sm:inline">{{ $codeLabel }}</span>
+        </button>
+        <button
+          class="mermaid-tool-button text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          type="button"
+          data-mermaid-action="download-svg"
+          aria-label="{{ $saveLabel }}"
+          title="{{ $saveLabel }}"
+        >
+          {{ partial "features/icon.html" (dict "name" "download" "size" "xs" "ariaLabel" "") }}
+          <span class="hidden sm:inline">{{ $saveLabel }}</span>
+        </button>
+        <button
+          class="mermaid-tool-button text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          type="button"
+          data-mermaid-action="copy-svg"
+          aria-label="{{ $copyLabel }}"
+          title="{{ $copyLabel }}"
+        >
+          {{ partial "features/icon.html" (dict "name" "copy" "size" "xs" "ariaLabel" "") }}
+          <span class="hidden sm:inline">{{ $copyLabel }}</span>
+        </button>
+        <button
+          class="mermaid-tool-button text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          type="button"
+          data-mermaid-action="zoom"
+          aria-label="{{ $zoomLabel }}"
+          title="{{ $zoomLabel }}"
+        >
+          {{ partial "features/icon.html" (dict "name" "maximize" "size" "xs" "ariaLabel" "") }}
+          <span class="hidden sm:inline">{{ $zoomLabel }}</span>
+        </button>
+      </div>
+
+      <div class="mermaid-code-actions hidden items-center gap-2">
+        <button
+          class="mermaid-tool-button text-primary hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          type="button"
+          data-mermaid-action="render"
+          aria-label="{{ $renderLabel }}"
+          title="{{ $renderLabel }}"
+        >
+          {{ partial "features/icon.html" (dict "name" "chart" "size" "xs" "ariaLabel" "") }}
+          <span class="hidden sm:inline">{{ $renderLabel }}</span>
+        </button>
+        <button
+          class="mermaid-code-collapse-btn mermaid-tool-button text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          type="button"
+          data-mermaid-action="toggle-code-collapse"
+          data-label-expand="{{ $expandLabel }}"
+          data-label-collapse="{{ $collapseLabel }}"
+          aria-label="{{ $collapseLabel }}"
+          title="{{ $collapseLabel }}"
+          aria-expanded="true"
+          hidden
+        >
+          <span class="mermaid-code-collapse-chevron transition-transform duration-200 ease-out">
+            {{ partial "features/icon.html" (dict "name" "chevron-down" "size" "xs" "ariaLabel" "") }}
+          </span>
+          <span class="mermaid-code-collapse-text hidden sm:inline">{{ $collapseLabel }}</span>
+        </button>
+        <button
+          class="mermaid-tool-button text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 ease-out focus:ring-2 focus:outline-none"
+          type="button"
+          data-mermaid-action="copy-code"
+          aria-label="{{ $copyLabel }}"
+          title="{{ $copyLabel }}"
+        >
+          {{ partial "features/icon.html" (dict "name" "copy" "size" "xs" "ariaLabel" "") }}
+          <span class="hidden sm:inline">{{ $copyLabel }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mermaid-tool-content code-block-content relative">
+    <div class="mermaid-tool-frame" data-mermaid-render-pane>
+      <pre class="mermaid">
+{{ .Inner | htmlEscape | safeHTML }}
+      </pre>
+    </div>
+  </div>
+
+  <textarea data-mermaid-source hidden>{{ .Inner | htmlEscape | safeHTML }}</textarea>
+</div>
+{{ .Page.Store.Set "hasMermaid" true }}

@@ -1,0 +1,54 @@
+# UI text registry. Missing fields fall back to the original template/i18n text.
+header:
+  search: "搜索"
+  immersive: "沉浸模式"
+  immersiveEnable: "开启沉浸模式"
+  immersiveDisable: "关闭沉浸模式"
+  immersiveModes:
+    fixed: "固定"
+    topFixed: "顶部固定"
+    bottomFixed: "底部固定"
+    dynamic: "动态"
+    hidden: "隐藏"
+  immersiveHiddenTrigger: "显示悬浮栏"
+
+search:
+  shortcutGlobal: "全局搜索"
+  shortcutInline: "局部搜索"
+  kindFallback: "内容"
+  kinds:
+    post: "文章"
+    project: "项目"
+    category: "分类"
+    series: "系列"
+    tag: "标签"
+  fields:
+    categories: "分类"
+    tags: "标签"
+    series: "系列"
+  itemCount: "%d 个条目"
+
+mermaid:
+  title: "MERMAID"
+  tools: "Mermaid 工具"
+  code: "代码"
+  render: "渲染"
+  copy: "复制"
+  save: "保存"
+  zoom: "放大"
+  copied: "已复制"
+  saved: "已保存"
+  rendered: "已渲染"
+  copyFailed: "复制失败"
+  saveFailed: "保存失败"
+  renderFailed: "渲染失败"
+  close: "关闭"
+
+image:
+  zoom: "放大"
+  download: "下载"
+  close: "关闭"
+
+code:
+  expand: "展开"
+  collapse: "收起"

@@ -1,0 +1,67 @@
+{{- $context := .context -}}
+{{- $clickable := .clickable | default false -}}
+{{- $resumeLink := .resumeLink | default (`/resume/` | relLangURL) -}}
+{{- $author := $context.Params.author | default site.Params.author -}}
+{{- $avatarSrc := strings.TrimPrefix "/" ($author.avatar | default "") -}}
+
+{{- if $author -}}
+  <div
+    class="author-profile-card bg-card border-border rounded-xl border p-8 shadow-sm{{ if $clickable }} is-clickable{{ end }}"
+    {{- if $clickable }}
+      data-resume-link="{{ $resumeLink }}"
+      role="link"
+      tabindex="0"
+      aria-label="查看组织档案"
+    {{- end }}
+  >
+    <div class="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:text-left">
+      <div class="shrink-0">
+        {{ if $author.avatar }}
+          <img
+            src="{{ $avatarSrc | relURL }}"
+            alt="{{ $author.name | default site.Title }}"
+            class="border-primary/20 h-24 w-24 rounded-full border-4 object-cover shadow-lg"
+          />
+        {{ else }}
+          <div
+            class="bg-primary text-primary-foreground flex h-24 w-24 items-center justify-center rounded-full text-2xl font-bold shadow-lg"
+          >
+            {{ substr ($author.name | default site.Title) 0 1 | upper }}
+          </div>
+        {{ end }}
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <h1 class="text-foreground mb-2 text-3xl font-bold">
+          {{ $author.name | default site.Title }}
+        </h1>
+
+        {{ if $author.title }}
+          <p class="text-muted-foreground mb-3 text-lg">{{ $author.title }}</p>
+        {{ end }}
+
+        {{ if $author.description }}
+          <p class="text-foreground mb-4 leading-relaxed">{{ $author.description }}</p>
+        {{ end }}
+
+        {{ if $author.social }}
+          <div class="flex flex-wrap justify-center gap-3 md:justify-start">
+            {{ range $author.social }}
+              <button
+                class="bg-muted text-muted-foreground hover:text-primary hover:bg-primary/10 focus:ring-primary/20 inline-flex items-center gap-2 rounded-lg px-3 py-2 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 focus:ring-2 focus:outline-none"
+                title="{{ .name }}"
+                data-contact-modal="{{ .icon | lower }}"
+                type="button"
+              >
+                {{ if .icon }}
+                  {{ partial "features/icon.html" (dict "name" .icon "size" "sm" "ariaLabel" .name) }}
+                {{ end }}
+                <span class="text-sm font-medium">{{ .name }}</span>
+              </button>
+            {{ end }}
+          </div>
+        {{ end }}
+      </div>
+    </div>
+  </div>
+{{- end -}}

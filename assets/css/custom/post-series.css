@@ -1,0 +1,26 @@
+/* Series sidebar — desktop absolute positioning so card height
+   follows the left content (tags/categories) while the right sidebar
+   fills the full card height with overflow scroll. */
+
+@media (min-width: 1024px) {
+  .series-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .series-left {
+    width: 60%;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 0;
+  }
+
+  .series-sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40%;
+    border-left: 1px solid var(--color-border);
+    border-top: 0;
+  }
+}
