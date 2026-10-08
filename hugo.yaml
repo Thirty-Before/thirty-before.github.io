@@ -1,0 +1,136 @@
+baseURL: https://thirty-before.github.io/
+title: Thirty Before
+theme: hugo-narrow
+defaultContentLanguage: zh-hans
+locale: zh-Hans
+hasCJKLanguage: true
+enableEmoji: true
+taxonomies: {}
+disableKinds:
+  - taxonomy
+  - term
+
+pagination:
+  pagerSize: 8
+
+markup:
+  tableOfContents:
+    startLevel: 2
+    endLevel: 4
+    ordered: false
+  goldmark:
+    renderer:
+      unsafe: false
+  highlight:
+    codeFences: true
+    guessSyntax: false
+    lineNos: false
+    noClasses: false
+    style: github
+    tabWidth: 2
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
+    - WebAppManifest
+
+outputFormats:
+  WebAppManifest:
+    mediaType: application/manifest+json
+    baseName: site
+    isPlainText: true
+
+menus:
+  main:
+    - name: 首页
+      pageRef: /
+      weight: 10
+      params:
+        icon: home
+    - name: 关于
+      pageRef: /about
+      weight: 20
+      params:
+        icon: about
+
+params:
+  description: Thirty Before 组织主页，介绍组织方向、项目进展与协作方式。
+  defaultAuthor: Thirty Before
+  language: zh-CN
+  shortName: Thirty Before
+  images:
+    - /images/thirty-before-mark.svg
+  favicon:
+    svg: /favicon.svg
+  author:
+    name: Thirty Before
+    title: 组织主页
+    description: 记录组织方向、项目进展与成员实践。
+    avatar: /images/thirty-before-mark.svg
+  header:
+    sticky: true
+    logo:
+      image: /images/thirty-before-mark.svg
+      link: /
+    showThemeSwitch: true
+    showDarkModeSwitch: true
+    showLanguageSwitch: false
+  dock: always
+  contentWidth: 56rem
+  toc:
+    enabled: true
+    position: center
+  colorScheme: default
+  home:
+    contentOrder:
+      - author-section
+      - page-content
+  post:
+    showRelated: false
+    license:
+      show: false
+  comments:
+    enabled: false
+  analytics:
+    enabled: false
+  katex:
+    enabled: true
+  mermaid:
+    enabled: true
+  gallery:
+    enabled: true
+    defaultLayout: justified
+    gap: 10
+    targetRowHeight: 200
+    lastRowBehavior: center
+    columnWidth: 200
+    columns: 4
+  lightbox:
+    enabled: true
+  codeblock:
+    collapse:
+      enabled: true
+      defaultState: expanded
+      autoCollapseLines: 8
+      minCollapseLines: 6
+      autoCollapseHeight: 400
+      collapsedHeight: 120
+  readingProgress:
+    enabled: false
+  dateFormat:
+    full: :date_full
+    long: 2006-01-02
+    medium: 2006-01-02
+    short: 01-02
+  timeFormat:
+    full: :time_full
+    long: 15:04:05
+    medium: 15:04
+    short: 15:04
+
+module:
+  hugoVersion:
+    extended: true
+    min: 0.158.0

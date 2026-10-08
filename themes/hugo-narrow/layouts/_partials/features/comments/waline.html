@@ -1,0 +1,31 @@
+{{/* Waline 评论系统组件
+
+  简洁、安全的评论系统
+
+  @context {page} . 当前文章页面对象
+  @param {string} id 评论容器的唯一 ID
+*/}}
+
+{{ $id := .id | default "waline-comments" }}
+{{ $config := .Site.Params.comments.waline }}
+
+{{ if $config.serverURL }}
+  <div id="{{ $id }}" class="waline-container"></div>
+
+  {{/* 加载 Waline CSS */}}
+  <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css" />
+
+  {{/* 加载 Waline JS */}}
+  <script type="module">
+    import { init } from 'https://unpkg.com/@waline/client@v3/dist/waline.js';
+
+    init({
+      el: '#{{ $id }}',
+      serverURL: '{{ $config.serverURL }}',
+      dark: "html[class='dark']",
+      lang: '{{ $config.lang | default .Site.Language.Locale | default "zh-CN" }}',
+    });
+  </script>
+{{ else }}
+  {{ partial "features/comments/notice.html" (dict "id" $id "icon" "message-circle") }}
+{{ end }}

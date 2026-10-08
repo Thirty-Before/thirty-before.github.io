@@ -1,0 +1,22 @@
+{{- $manifest := dict
+  "name" site.Title
+  "short_name" (site.Params.shortName | default site.Title)
+  "description" (site.Params.description | default "")
+  "start_url" "/"
+  "display" "standalone"
+  "background_color" "#ffffff"
+  "theme_color" "#27324b"
+  "orientation" "portrait-primary"
+  "lang" (site.Params.language | default site.Language.Locale | default "zh-CN")
+  "dir" "ltr"
+  "scope" "/"
+-}}
+{{- $favicon := site.Params.favicon | default dict -}}
+{{- with $favicon.svg -}}
+  {{- $manifest = merge $manifest (dict "icons" (slice (dict
+    "src" (strings.TrimPrefix "/" . | relURL)
+    "sizes" "any"
+    "type" "image/svg+xml"
+  ))) -}}
+{{- end -}}
+{{- $manifest | jsonify (dict "indent" "  ") -}}
