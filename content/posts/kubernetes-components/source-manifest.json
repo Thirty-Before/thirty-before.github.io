@@ -1,0 +1,28 @@
+{
+  "source": "https://kubernetes.io/zh-cn/docs/concepts/overview/components/",
+  "raw_source": "https://raw.githubusercontent.com/kubernetes/website/main/content/zh-cn/docs/concepts/overview/components.md",
+  "retrieved_at": "2026-10-08T17:34:55+08:00",
+  "original_file": "source.txt",
+  "license": "CC-BY-4.0",
+  "files": [
+    {
+      "sha256": "4bdb564aa565974cfb71ace27febe6c3723da015ff98f1ef1397f7170f63af11",
+      "path": "index.md"
+    },
+    {
+      "sha256": "9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411",
+      "path": "LICENSE.txt"
+    },
+    {
+      "sha256": "5d5ee0e0ff18f61939059aa31603e0933d5e58c9fac321ed707a0eac99eb3c64",
+      "path": "source.txt"
+    },
+    {
+      "sha256": "ac2dc7c56c550658a6c3fb88e3f36d610a852b18fadc4b471da411f0655588e7",
+      "path": "images/components-of-kubernetes.svg"
+    }
+  ],
+  "resource_sources": [
+    "https://kubernetes.io/zh-cn/docs/images/components-of-kubernetes.svg"
+  ]
+}

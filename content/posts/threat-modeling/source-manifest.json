@@ -1,0 +1,38 @@
+{
+  "source": "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html",
+  "raw_source": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Threat_Modeling_Cheat_Sheet.md",
+  "retrieved_at": "2026-10-08T17:34:55+08:00",
+  "original_file": "source.txt",
+  "license": "CC-BY-SA-4.0",
+  "files": [
+    {
+      "sha256": "3f17b580ecc12ad7774b82ba0aca6bd87a9f3aa5d0bef36e86a5ca644a44240a",
+      "path": "illustrations-source.txt"
+    },
+    {
+      "sha256": "6716a278c3ab43b8a5195c8744a92be46e95ab7b2ee42b7beeb71a9a588bef81",
+      "path": "index.md"
+    },
+    {
+      "sha256": "2b47ecdd5078e948395bc5980226933854228ff688f10d1dd059208be4956084",
+      "path": "LICENSE.txt"
+    },
+    {
+      "sha256": "5b080ddab3a87ece17b458bf6749d206e1fba684ca733a7d5239961652966324",
+      "path": "source.txt"
+    },
+    {
+      "sha256": "4cd6751b99dd1988c594144316afdf253c6ade6f426a70fc9e303761eb575e58",
+      "path": "images/library-data-flow.jpg"
+    },
+    {
+      "sha256": "908151ed0bd182bcac6283052d6b771953c7f3bd191351871ac1968236661eff",
+      "path": "images/login-data-flow.jpg"
+    }
+  ],
+  "resource_sources": [
+    "https://owasp.org/www-community/Threat_Modeling_Process",
+    "https://raw.githubusercontent.com/OWASP/www-community/master/assets/images/Data_flow1.jpg",
+    "https://raw.githubusercontent.com/OWASP/www-community/master/assets/images/Data_flow2.jpg"
+  ]
+}

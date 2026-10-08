@@ -109,7 +109,7 @@
 
   <div class="code-block-content relative" id="{{ $codeId }}">
     {{- if $isOutput -}}
-      <pre class="code-output-pre" tabindex="0"><code class="code-output-code" data-lang="output">{{ .Inner | htmlEscape }}</code></pre>
+      <pre class="code-output-pre" tabindex="0"><code class="code-output-code" data-lang="output">{{ .Inner }}</code></pre>
     {{- else -}}
       {{- $highlighted := transform.HighlightCodeBlock . -}}
       {{ $highlighted.Wrapped }}

@@ -1,0 +1,62 @@
+{
+  "source": "https://huggingface.co/learn/llm-course/zh-CN/chapter2/4",
+  "raw_source": "https://raw.githubusercontent.com/huggingface/course/main/chapters/zh-CN/chapter2/4.mdx",
+  "retrieved_at": "2026-10-08T17:34:55+08:00",
+  "original_file": "source.mdx",
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "sha256": "0896891a3421e64bb0daf3ffc9816a35b57fdd7731518d8b6fcfdc47ced626b1",
+      "path": "index.md"
+    },
+    {
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "path": "LICENSE.txt"
+    },
+    {
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "path": "NOTEBOOK-LICENSE.txt"
+    },
+    {
+      "sha256": "8ffdcb398628d6a23a8ecfc96039567d03652b1274a84960275062900e47a5fe",
+      "path": "section4_pt.ipynb"
+    },
+    {
+      "sha256": "1642353347b380fad31493cdc894cb8aecda52f7ce66407e98cc72640e0300af",
+      "path": "section4_tf.ipynb"
+    },
+    {
+      "sha256": "e8852d34644a4e4f5c35bc56cc3d66db08bd34eccdf14da64fec5fb3f4a471d3",
+      "path": "source.mdx"
+    },
+    {
+      "sha256": "cf261e8a91e196b5e18fa13290efa3263fb721e4dffefff7865e6644f41ce593",
+      "path": "images/bpe_subword-dark.svg"
+    },
+    {
+      "sha256": "f4bd097d02cb76c44770d95ff1a2565c05d8319debe7b9d3091767ec8bc0d47a",
+      "path": "images/bpe_subword.svg"
+    },
+    {
+      "sha256": "e949c163691646f0ae9c5c8d3b4ed4df938d9e47b28aab2de73fcb49d342df89",
+      "path": "images/character_based_tokenization-dark.svg"
+    },
+    {
+      "sha256": "aa97bd7479f8e55600330daf7c4e91260b3d0195a39b28ccafb5bbe1a6070767",
+      "path": "images/character_based_tokenization.svg"
+    },
+    {
+      "sha256": "d4652ac8b57c679b4f25ee52b6ed75498ffc9a72c612b548714df28caa59f538",
+      "path": "images/word_based_tokenization-dark.svg"
+    },
+    {
+      "sha256": "9bd9e53e993f6f7c86ff351e1ae690dcc70f7814d9b0c89c86efff84bfc9a8aa",
+      "path": "images/word_based_tokenization.svg"
+    }
+  ],
+  "resource_sources": [
+    "https://huggingface.co/datasets/huggingface-course/documentation-images/resolve/main/en/chapter2/",
+    "https://raw.githubusercontent.com/huggingface/notebooks/master/course/zh-CN/chapter2/section4_pt.ipynb",
+    "https://raw.githubusercontent.com/huggingface/notebooks/master/course/zh-CN/chapter2/section4_tf.ipynb"
+  ]
+}
