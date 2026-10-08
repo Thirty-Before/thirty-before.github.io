@@ -5,10 +5,12 @@ defaultContentLanguage: zh-hans
 locale: zh-Hans
 hasCJKLanguage: true
 enableEmoji: true
-taxonomies: {}
-disableKinds:
-  - taxonomy
-  - term
+mainSections:
+  - posts
+taxonomies:
+  category: categories
+  tag: tags
+  series: series
 
 pagination:
   pagerSize: 8
@@ -49,9 +51,45 @@ menus:
       weight: 10
       params:
         icon: home
+    - name: 文章
+      pageRef: /posts
+      weight: 20
+      params:
+        icon: posts
+    - name: 分类
+      pageRef: /categories
+      weight: 30
+      params:
+        icon: categories
+    - name: 系列
+      pageRef: /series
+      weight: 40
+      params:
+        icon: bookmark
+    - name: 项目
+      pageRef: /projects
+      weight: 50
+      params:
+        icon: projects
+    - name: 更多
+      weight: 60
+      params:
+        icon: layers
+    - name: 归档
+      pageRef: /archives
+      parent: 更多
+      weight: 1
+      params:
+        icon: archive
+    - name: 标签
+      pageRef: /tags
+      parent: 更多
+      weight: 2
+      params:
+        icon: tags
     - name: 关于
       pageRef: /about
-      weight: 20
+      weight: 70
       params:
         icon: about
 
@@ -87,6 +125,8 @@ params:
     contentOrder:
       - author-section
       - page-content
+      - recent-posts
+    recentPostsCount: 3
   post:
     showRelated: false
     license:
