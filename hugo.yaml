@@ -87,12 +87,6 @@ menus:
       weight: 2
       params:
         icon: tags
-    - name: 关于
-      pageRef: /about
-      weight: 70
-      params:
-        icon: about
-
 params:
   description: Thirty Before 组织主页，介绍组织方向、项目进展与协作方式。
   defaultAuthor: Thirty Before
@@ -116,11 +110,60 @@ params:
     showDarkModeSwitch: true
     showLanguageSwitch: false
   dock: always
+  immersiveMode:
+    enabled: true
+    default: false
+    idleDelay: 2000
   contentWidth: 56rem
   toc:
     enabled: true
     position: center
+  headingNumbering:
+    enabled: true
+    maxDepth: 4
+    base: first-content-heading
+    levelOneStyle: chinese
+    levelOneSuffix: "、"
+    decimalSeparator: "."
+    space: " "
   colorScheme: default
+  themes:
+    default:
+      name: Default
+      order: 1
+    claude:
+      name: Claude
+      order: 2
+    bumblebee:
+      name: Bumblebee
+      order: 3
+    emerald:
+      name: Emerald
+      order: 4
+    nord:
+      name: Nord
+      order: 5
+    sunset:
+      name: Sunset
+      order: 6
+    abyss:
+      name: Abyss
+      order: 7
+    dracula:
+      name: Dracula
+      order: 8
+    amethyst:
+      name: Amethyst
+      order: 9
+    slate:
+      name: Slate
+      order: 10
+    twitter:
+      name: Twitter
+      order: 11
+    minimal:
+      name: Minimal
+      order: 12
   home:
     contentOrder:
       - author-section
