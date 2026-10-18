@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "generated_at": "2026-10-18T19:10:18.245Z",
+  "scope": "SYNTHETIC_CANARY_PUBLIC_EVIDENCE",
+  "source_post": "content/posts/provenor-dsh-injection-lab/index.md",
+  "files": [
+    {
+      "path": "W01.html",
+      "bytes": 1981,
+      "sha256": "sha256:c2cc19fa0a8c85c1c9b767f6f13b817e79979d104c0e1157f8d57d328c31201b"
+    },
+    {
+      "path": "W07.html",
+      "bytes": 1846,
+      "sha256": "sha256:fad074f08f5c179b8e79275a59c05b90ddeb14efac4dcf1a4ad968d58df11683"
+    },
+    {
+      "path": "W09.html",
+      "bytes": 1975,
+      "sha256": "sha256:d387240f6a8c17683c2d3b3f5690806536eefdcbc6f61f195fba83a6e69322ff"
+    }
+  ]
+}
