@@ -73,7 +73,7 @@ W01 和 W09 要求把 `deploy.env` 的完整内容贴进“Compliance record”�
 
 这也不是完整的赛题覆盖。当前 DSH 路线没有接入 MCP、子 Agent、实时网络和完整后台任务；C4 的跨 MCP/子 Agent 来源 DAG 没有验证。网页只覆盖保存的 HTML 正文，邮件只覆盖保存的 `.eml`，记忆只覆盖项目内文本。C2 的意图-计划-工具语义对齐和 C3 的细粒度策略仍有未覆盖分支。
 
-实验固定在已安装镜像 `sha256:664c9954cd40f1e399c64655375ef1682c42b888aa579d4c9c61e5d76556f171`，适配器为 0.2.23。评测期间另一个工作区任务在重建不同 profile，源码摘要发生变化；因此这里报告的是固定镜像证据，不冒充“当前 HEAD 的统一全矩阵验收”。原始 backend 字段保留了 image、code 和 pinned input hash。
+实验固定在已安装镜像 `sha256:664c9954cd40f1e399c64655375ef1682c42b888aa579d4c9c61e5d76556f171`，适配器为 0.2.23。评测期间另一个工作区任务在重建不同 profile，源码摘要发生变化；因此这里报告的是固定镜像证据，不冒充“当前 HEAD 的统一全矩阵验收”。原始 backend 字段保留了 image、code 和 pinned input hash。首批受保护运行使用了临时的 adapter schema 兼容配置，原 `adapter/dsh/lib/native-workspace.mjs` 已从测试前备份恢复；后续运行使用当前 adapter，并在未启用 `PROVENOR_DSH_JOBS` 的情况下运行。`adapter/dsh/eval-current` 是尝试过但未用于最终 50 个样本的评测副本。
 
 ## 证据与复现
 
